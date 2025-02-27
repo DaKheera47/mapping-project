@@ -1,5 +1,7 @@
 import type { User } from '@/actions/user';
+import { Button } from '@/components/ui/button';
 import type { ColumnDef } from '@tanstack/react-table';
+import { ArrowUpDown } from 'lucide-react';
 
 export const columns: ColumnDef<User>[] = [
   {
@@ -12,6 +14,16 @@ export const columns: ColumnDef<User>[] = [
   },
   {
     accessorKey: 'id',
-    header: 'Id',
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
+          ID
+          {column.getIsSorted() && <ArrowUpDown />}
+        </Button>
+      );
+    },
   },
 ];

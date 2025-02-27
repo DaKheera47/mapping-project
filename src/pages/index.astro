@@ -1,11 +1,11 @@
 ---
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import Layout from "../layouts/Layout.astro";
 import SelectDemo from "@/components/SelectExample";
+import { actions } from "astro:actions";
 ---
 
 <Layout>
-    <Button client:load>Hello World</Button>
-
     <SelectDemo client:load />
 </Layout>

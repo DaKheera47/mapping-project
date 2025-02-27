@@ -6,7 +6,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,astro,md,json,css}\""
   },
   "dependencies": {
     "@astrojs/react": "^4.2.0",
@@ -24,5 +25,10 @@
     "tailwind-merge": "^3.0.2",
     "tailwindcss": "^4.0.9",
     "tailwindcss-animate": "^1.0.7"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.5",
+    "prettier-plugin-astro": "^0.13.0",
+    "prettier-plugin-tailwindcss": "^0.6.11"
   }
 }

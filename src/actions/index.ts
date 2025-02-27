@@ -1,5 +1,6 @@
 import { defineAction } from 'astro:actions';
 import { z } from 'astro:schema';
+import { user } from './user';
 
 export const server = {
   getServerTime: defineAction({
@@ -11,4 +12,5 @@ export const server = {
       return `Hello, ${input.name}! The current time is ${currentTime}`;
     },
   }),
+  user,
 };

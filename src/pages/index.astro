@@ -1,11 +1,11 @@
 ---
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import Layout from "../layouts/Layout.astro";
-import SelectDemo from "@/components/SelectExample";
-import { actions } from "astro:actions";
+import Layout from '@/layouts/Layout.astro';
+import IndexEntry from '@/entrypoints/IndexEntry';
+import { actions } from 'astro:actions';
 ---
 
 <Layout>
-    <SelectDemo client:load />
+  <IndexEntry client:load>
+    <div slot='fallback'>Loading...</div>
+  </IndexEntry>
 </Layout>

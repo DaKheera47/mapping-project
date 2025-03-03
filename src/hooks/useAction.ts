@@ -1,5 +1,5 @@
 import type { ActionClient } from 'astro/actions/runtime/virtual/server.js';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 
 type UseActionResult<T> = {
   data: T | null;
@@ -9,16 +9,20 @@ type UseActionResult<T> = {
 
 export function useAction<TOutput>(
   action: ActionClient<TOutput, 'json', undefined>,
-  params: Record<string, any> = {}
+  params: Record<string, any> = {},
+  refresh: boolean = false
 ): UseActionResult<TOutput> {
   const [data, setData] = useState<TOutput | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
+  const memoizedParams = useMemo(() => params, [params]);
+  const memoizedAction = useMemo(() => action, [action]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const result = await action(params);
+        const result = await memoizedAction(memoizedParams);
         if (result.error) {
           setError(result.error);
         } else {
@@ -32,7 +36,7 @@ export function useAction<TOutput>(
     };
 
     fetchData();
-  }, [action, params]);
+  }, [refresh]);
 
   return { data, error, loading };
 }

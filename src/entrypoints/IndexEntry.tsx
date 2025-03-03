@@ -13,7 +13,12 @@ export default function IndexEntry() {
       ) : error ? (
         <div className="text-center text-red-500">Error: {error.message}</div>
       ) : (
-        users && <DataTable columns={columns} data={users} />
+        users && (
+          <div className="flex w-full flex-col items-center text-center">
+            Last updated: {users.serverTime}
+            <DataTable columns={columns} data={users.users} />
+          </div>
+        )
       )}
     </div>
   );

@@ -1,0 +1,57 @@
+---
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import Layout from '@/layouts/Layout.astro';
+---
+
+<Layout title="Register">
+  <Card className="w-[350px]">
+    <CardHeader>
+      <CardTitle className="text-2xl">Register</CardTitle>
+      <CardDescription>
+        Already have an account? <a
+          href="/signin"
+          class="hover:text-primary underline transition-colors duration-300 hover:underline-offset-4"
+        >
+          Sign in instead
+        </a>
+      </CardDescription>
+    </CardHeader>
+
+    <CardContent>
+      <form action="/api/auth/register" method="post" id="register-form">
+        <div class="grid w-full items-center gap-4">
+          <div class="flex flex-col space-y-1.5">
+            <Label htmlFor="email">Email</Label>
+
+            <Input id="email" name="email" type="email" placeholder="Email" />
+          </div>
+
+          <div class="flex flex-col space-y-1.5">
+            <Label htmlFor="password">Password</Label>
+
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              placeholder="Password"
+            />
+          </div>
+        </div>
+      </form>
+    </CardContent>
+
+    <CardFooter className="flex justify-between">
+      <Button type="submit" form="register-form"> Register </Button>
+    </CardFooter>
+  </Card>
+</Layout>

@@ -1,0 +1,60 @@
+---
+import { buttonVariants } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import IndexEntry from '@/entrypoints/IndexEntry';
+import Layout from '@/layouts/Layout.astro';
+import { supabase } from '@/lib/supabase';
+
+const accessToken = Astro.cookies.get('sb-access-token');
+const refreshToken = Astro.cookies.get('sb-refresh-token');
+
+if (!accessToken || !refreshToken) {
+  return Astro.redirect('/signin');
+}
+
+const resetCookies = async () => {
+  Astro.cookies.delete('sb-access-token', {
+    path: '/',
+  });
+  Astro.cookies.delete('sb-refresh-token', {
+    path: '/',
+  });
+  return Astro.redirect('/signin');
+};
+
+let session;
+try {
+  session = await supabase.auth.setSession({
+    refresh_token: refreshToken.value,
+    access_token: accessToken.value,
+  });
+
+  if (session.error) {
+    return resetCookies();
+  }
+} catch (error) {
+  return resetCookies();
+}
+
+const email = session.data.user?.email;
+---
+
+<Layout title='dashboard'>
+  <section>
+    {email && <h1>Welcome, {email}</h1>}
+
+    <IndexEntry client:load>
+      <div slot='fallback'>Loading...</div>
+    </IndexEntry>
+
+    <Card>
+      <h2>Actions</h2>
+      <a
+        href='/api/auth/signout'
+        class={buttonVariants()}
+      >
+        Sign out
+      </a>
+    </Card>
+  </section>
+</Layout>

@@ -1,5 +1,5 @@
 import { DataTable } from '@/components/ui/data-table';
-import { columns } from '@/components/user-table/columns';
+import { columns } from '@/components/entity-table/columns';
 import { useAction } from '@/hooks/useAction';
 import { actions } from 'astro:actions';
 

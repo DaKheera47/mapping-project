@@ -1,5 +1,5 @@
 ---
-import IndexEntry from '@/entrypoints/IndexEntry';
+import EntitiesEntry from '@/entrypoints/EntitiesEntry';
 import Layout from '@/layouts/Layout.astro';
 import { checkSession } from '@/lib/checkSession';
 
@@ -10,8 +10,8 @@ if (redirect) {
 }
 ---
 
-<Layout title='dashboard' isAuth={!!user}>
-  <IndexEntry client:load>
+<Layout title='View Entities' isAuth={!!user}>
+  <EntitiesEntry client:load>
     <div slot='fallback'>Loading...</div>
-  </IndexEntry>
+  </EntitiesEntry>
 </Layout>

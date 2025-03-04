@@ -1,26 +1,34 @@
 ---
 import { buttonVariants } from '@/components/ui/button';
 import Layout from '@/layouts/Layout.astro';
-
+import { appDisplayName } from '@/config/metadata.json';
 import { checkSession } from '@/lib/checkSession';
 
 const { user, redirect } = await checkSession(Astro.cookies);
 
 if (user) {
-  return Astro.redirect('/dashboard');
+  return Astro.redirect('/entities');
 }
 ---
 
-<Layout title="Home">
-  <div class="flex h-screen flex-col items-center justify-center">
-    <h1 class="text-4xl font-bold">Welcome to the Mapping Project</h1>
+<Layout title='Home'>
+  <div class='flex h-screen flex-col items-center justify-center'>
+    <h1 class='text-4xl font-bold'>Welcome to {appDisplayName}</h1>
 
-    <div class="mt-8 grid grid-cols-3 gap-4">
-      <a class={buttonVariants()} href="/signin"> Sign in </a>
+    <div class='mt-8 grid grid-cols-3 gap-4'>
+      <a
+        class={buttonVariants()}
+        href='/signin'
+      >
+        Sign in
+      </a>
 
-      <a class={buttonVariants()} href="/register"> Register </a>
-
-      <a class={buttonVariants()} href="/dashboard"> Dashboard </a>
+      <a
+        class={buttonVariants()}
+        href='/register'
+      >
+        Register
+      </a>
     </div>
   </div>
 </Layout>

@@ -1,16 +1,12 @@
-import type { User } from '@/actions/user';
 import { Button } from '@/components/ui/button';
+import type { SelectEntity } from '@/db/schema';
 import type { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpDown } from 'lucide-react';
 
-export const columns: ColumnDef<User>[] = [
+export const columns: ColumnDef<SelectEntity>[] = [
   {
     accessorKey: 'name',
     header: 'Name',
-  },
-  {
-    accessorKey: 'email',
-    header: 'Email',
   },
   {
     accessorKey: 'id',
@@ -25,5 +21,13 @@ export const columns: ColumnDef<User>[] = [
         </Button>
       );
     },
+  },
+  {
+    accessorKey: 'description',
+    header: 'Description',
+  },
+  {
+    accessorKey: 'location',
+    header: 'Location',
   },
 ];

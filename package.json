@@ -7,6 +7,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
+    "db:push": "drizzle-kit push",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,astro,md,json,css}\""
   },
   "dependencies": {
@@ -22,7 +23,9 @@
     "astro": "^5.3.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "drizzle-orm": "^0.40.0",
     "lucide-react": "^0.476.0",
+    "postgres": "^3.4.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^3.0.2",
@@ -30,6 +33,7 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "drizzle-kit": "^0.30.5",
     "prettier": "^3.2.5",
     "prettier-plugin-astro": "^0.13.0",
     "prettier-plugin-tailwindcss": "^0.6.11"

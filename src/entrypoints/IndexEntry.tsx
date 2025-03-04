@@ -4,7 +4,11 @@ import { useAction } from '@/hooks/useAction';
 import { actions } from 'astro:actions';
 
 export default function IndexEntry() {
-  const { data: users, error, loading } = useAction(actions.user.getAllUsers);
+  const {
+    data: entities,
+    error,
+    loading,
+  } = useAction(actions.entities.getAllEntities);
 
   return (
     <div className="container mx-auto py-10">
@@ -13,10 +17,15 @@ export default function IndexEntry() {
       ) : error ? (
         <div className="text-center text-red-500">Error: {error.message}</div>
       ) : (
-        users && (
-          <div className="flex w-full flex-col items-center text-center">
-            Last updated: {users.serverTime}
-            <DataTable columns={columns} data={users.users} />
+        entities && (
+          <div className="flex w-full flex-col items-center space-y-4 text-center">
+            <span>Last updated: {entities.serverTime}</span>
+
+            <DataTable
+              columns={columns}
+              data={entities.entities}
+              className="w-3/5"
+            />
           </div>
         )
       )}

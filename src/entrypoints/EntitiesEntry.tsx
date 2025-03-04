@@ -24,7 +24,7 @@ export default function IndexEntry() {
             <DataTable
               columns={columns}
               data={entities.entities}
-              className="w-3/5"
+              className="w-4/5"
             />
           </div>
         )

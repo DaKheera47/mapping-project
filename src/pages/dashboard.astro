@@ -39,20 +39,11 @@ try {
 const email = session.data.user?.email;
 ---
 
-<Layout title='dashboard'>
-  {email && <h1>Welcome, {email}</h1>}
-
+<Layout
+  title='dashboard'
+  isAuth={true}
+>
   <IndexEntry client:load>
     <div slot='fallback'>Loading...</div>
   </IndexEntry>
-
-  <Card>
-    <h2>Actions</h2>
-    <a
-      href='/api/auth/signout'
-      class={buttonVariants()}
-    >
-      Sign out
-    </a>
-  </Card>
 </Layout>

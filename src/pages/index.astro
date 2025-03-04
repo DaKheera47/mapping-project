@@ -1,6 +1,14 @@
 ---
 import { buttonVariants } from '@/components/ui/button';
 import Layout from '@/layouts/Layout.astro';
+
+import { checkSession } from '@/lib/checkSession';
+
+const { user, redirect } = await checkSession(Astro.cookies);
+
+if (user) {
+  return Astro.redirect('/dashboard');
+}
 ---
 
 <Layout title="Home">

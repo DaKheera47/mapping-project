@@ -1,7 +1,8 @@
 ---
+import Navbar from '@/components/Navbar.astro';
+import { appDisplayName } from '@/config/metadata.json';
 import '@/styles/global.css';
 
-import Navbar from '@/components/Navbar.astro';
 const { title, isAuth } = Astro.props;
 ---
 
@@ -22,14 +23,14 @@ const { title, isAuth } = Astro.props;
       name='generator'
       content={Astro.generator}
     />
-    <title>{title} - Mapping Project</title>
+    <title>{title} - {appDisplayName}</title>
   </head>
 
   <body class='h-screen w-screen'>
     <Navbar isAuth={isAuth} />
 
-    <main class='flex flex-col items-center justify-center'>
-      <section class='container mx-auto'>
+    <main class='flex h-[calc(100vh_-_68px)] flex-col items-center justify-center'>
+      <section class='container mx-auto h-full'>
         <slot />
       </section>
     </main>

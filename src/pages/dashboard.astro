@@ -1,48 +1,16 @@
 ---
-import { buttonVariants } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import IndexEntry from '@/entrypoints/IndexEntry';
 import Layout from '@/layouts/Layout.astro';
-import { supabase } from '@/lib/supabase';
+import { checkSession } from '@/lib/checkSession';
 
-const accessToken = Astro.cookies.get('sb-access-token');
-const refreshToken = Astro.cookies.get('sb-refresh-token');
+const { user, redirect } = await checkSession(Astro.cookies);
 
-if (!accessToken || !refreshToken) {
-  return Astro.redirect('/signin');
+if (redirect) {
+  return Astro.redirect(redirect);
 }
-
-const resetCookies = async () => {
-  Astro.cookies.delete('sb-access-token', {
-    path: '/',
-  });
-  Astro.cookies.delete('sb-refresh-token', {
-    path: '/',
-  });
-  return Astro.redirect('/signin');
-};
-
-let session;
-try {
-  session = await supabase.auth.setSession({
-    refresh_token: refreshToken.value,
-    access_token: accessToken.value,
-  });
-
-  if (session.error) {
-    return resetCookies();
-  }
-} catch (error) {
-  return resetCookies();
-}
-
-const email = session.data.user?.email;
 ---
 
-<Layout
-  title='dashboard'
-  isAuth={true}
->
+<Layout title='dashboard' isAuth={!!user}>
   <IndexEntry client:load>
     <div slot='fallback'>Loading...</div>
   </IndexEntry>

@@ -1,12 +1,5 @@
 ---
-import {
-  Astronav,
-  MenuItems,
-  MenuIcon,
-  Dropdown,
-  DropdownItems,
-  DropdownSubmenu,
-} from 'astro-navbar';
+import { Astronav, MenuIcon, MenuItems } from 'astro-navbar';
 
 import { appDisplayName } from '@/config/metadata.json';
 import { buttonVariants } from './ui/button';
@@ -54,7 +47,7 @@ const { isAuth } = Astro.props;
           {appDisplayName}
         </a>
 
-        <div class='block lg:hidden'>
+        <div class='flex lg:hidden'>
           <MenuIcon class='size-4 text-neutral-800' />
         </div>
       </div>
@@ -63,7 +56,7 @@ const { isAuth } = Astro.props;
         <ul class='flex flex-col items-center lg:flex-row lg:gap-2'>
           {
             links.map(link => {
-              if (!link.needsAuth || (link.needsAuth && isAuth)) {
+              if (link.needsAuth === isAuth) {
                 return (
                   <li>
                     <a

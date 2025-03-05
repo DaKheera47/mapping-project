@@ -11,6 +11,25 @@ export const entities = {
       return { entities, serverTime: new Date().toLocaleTimeString() };
     },
   }),
+  editEntity: defineAction({
+    input: z.object({
+      id: z.number(),
+      name: z.string(),
+      description: z.string(),
+      location: z.string(),
+    }),
+    handler: async ({ id, name, description, location }) => {
+      try {
+        await db
+          .update(Entity)
+          .set({ name, description, location })
+          .where(eq(Entity.id, id));
+        return { success: true };
+      } catch (error: any) {
+        return { success: false, error: error.message };
+      }
+    },
+  }),
   deleteEntity: defineAction({
     input: z.object({
       id: z.number(),

@@ -7,7 +7,12 @@ import { eq } from 'drizzle-orm';
 export const entities = {
   getAllEntities: defineAction({
     handler: async () => {
-      const entities = await db.select().from(Entity);
+      const entities = await db.query.Entity.findMany({
+        with: {
+          type: true,
+        },
+      });
+
       return { entities, serverTime: new Date().toLocaleTimeString() };
     },
   }),
@@ -16,6 +21,7 @@ export const entities = {
       name: z.string(),
       description: z.string(),
       location: z.string(),
+      type: z.number(),
     }),
     handler: async ({ name, description, location }) => {
       try {
@@ -32,13 +38,15 @@ export const entities = {
       name: z.string(),
       description: z.string(),
       location: z.string(),
+      type: z.number(),
     }),
-    handler: async ({ id, name, description, location }) => {
+    handler: async ({ id, name, description, location, type }) => {
       try {
         await db
           .update(Entity)
-          .set({ name, description, location })
+          .set({ name, description, location, typeId: type })
           .where(eq(Entity.id, id));
+
         return { success: true };
       } catch (error: any) {
         return { success: false, error: error.message };

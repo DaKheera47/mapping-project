@@ -103,5 +103,9 @@ export const relationshipTypeRelations = relations(
   })
 );
 
-export type SelectEntity = InferSelectModel<typeof Entity>;
-export type InsertEntity = InferInsertModel<typeof Entity>;
+// Export types
+export type RelationshipType = InferSelectModel<typeof RelationshipType>;
+export type EntityType = InferSelectModel<typeof EntityType>;
+export type Entity = InferSelectModel<typeof Entity> & {
+  type: EntityType;
+};

@@ -1,4 +1,4 @@
-import { columns } from '@/components/entity-table/columns';
+import { getColumns } from '@/components/entity-table/columns';
 import AddModalContent from '@/components/entity-table/modals/AddModal';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
@@ -16,6 +16,9 @@ export default function IndexEntry() {
     error,
     loading,
   } = useAction(actions.entities.getAllEntities, {}, flag);
+  const { data: entityTypes } = useAction(
+    actions.entityTypes.getAllEntityTypes
+  );
 
   return (
     <div className="container mx-auto py-10">
@@ -24,7 +27,8 @@ export default function IndexEntry() {
       ) : error ? (
         <div className="text-center text-red-500">Error: {error.message}</div>
       ) : (
-        entities && (
+        entities &&
+        entityTypes && (
           <div className="flex w-full flex-col items-center space-y-4">
             <div className="flex w-full items-center justify-between">
               <div>
@@ -36,9 +40,9 @@ export default function IndexEntry() {
                       <Button variant="outline">
                         <PlusIcon />
                       </Button>
-
-                      <AddModalContent />
                     </DialogTrigger>
+
+                    <AddModalContent allEntityTypes={entityTypes.entityTypes} />
                   </Dialog>
                 </div>
                 <div className="mt-1 text-sm text-gray-500">
@@ -61,7 +65,8 @@ export default function IndexEntry() {
             </div>
 
             <DataTable
-              columns={columns}
+              // @ts-ignore idk why this is throwing an error
+              columns={getColumns(entityTypes.entityTypes)}
               data={entities.entities}
               className="w-full"
             />

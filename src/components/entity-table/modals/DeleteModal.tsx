@@ -7,10 +7,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import type { SelectEntity } from '@/db/schema';
+import type { Entity } from '@/db/schema';
 import { actions } from 'astro:actions';
 
-const DeleteModalContent = ({ entity }: { entity: SelectEntity }) => {
+const DeleteModalContent = ({ entity }: { entity: Entity }) => {
   const handleDelete = async () => {
     try {
       const result = await actions.entities.deleteEntity({ id: entity.id });

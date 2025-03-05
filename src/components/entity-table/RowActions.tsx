@@ -7,16 +7,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { SelectEntity } from '@/db/schema';
+import type { Entity, EntityType } from '@/db/schema';
 import { MoreHorizontal } from 'lucide-react';
-import EditModalContent from './modals/EditModal';
 import DeleteModalContent from './modals/DeleteModal';
+import EditModalContent from './modals/EditModal';
 
 type Props = {
-  entity: SelectEntity;
+  entity: Entity;
+  allEntityTypes: EntityType[];
 };
 
-export default function RowActions({ entity }: Props) {
+export default function RowActions({ entity, allEntityTypes }: Props) {
   return (
     <Dialog>
       <AlertDialog>
@@ -41,7 +42,7 @@ export default function RowActions({ entity }: Props) {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <EditModalContent entity={entity} />
+        <EditModalContent entity={entity} allEntityTypes={allEntityTypes} />
         <DeleteModalContent entity={entity} />
       </AlertDialog>
     </Dialog>

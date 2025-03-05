@@ -11,6 +11,21 @@ export const entities = {
       return { entities, serverTime: new Date().toLocaleTimeString() };
     },
   }),
+  addEntity: defineAction({
+    input: z.object({
+      name: z.string(),
+      description: z.string(),
+      location: z.string(),
+    }),
+    handler: async ({ name, description, location }) => {
+      try {
+        await db.insert(Entity).values({ name, description, location });
+        return { success: true };
+      } catch (error: any) {
+        return { success: false, error: error.message };
+      }
+    },
+  }),
   editEntity: defineAction({
     input: z.object({
       id: z.number(),

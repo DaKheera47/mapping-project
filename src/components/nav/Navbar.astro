@@ -61,9 +61,17 @@ const { isAuth } = Astro.props;
             name='Home'
           />
 
+          <!-- authed links -->
           {
             isAuth && (
               <>
+                <li>
+                  <Navlink
+                    href='/relationship-graph'
+                    name='Relationship Graph'
+                  />
+                </li>
+
                 <li>
                   <Dropdown class='group'>
                     <Button
@@ -91,6 +99,7 @@ const { isAuth } = Astro.props;
                     </DropdownItems>
                   </Dropdown>
                 </li>
+
                 <li>
                   <Navlink
                     href='/api/auth/signout'

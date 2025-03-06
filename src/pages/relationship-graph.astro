@@ -1,0 +1,20 @@
+---
+import RelationshipGraphEntry from '@/entrypoints/RelationshipGraphEntry';
+import Layout from '@/layouts/Layout.astro';
+import { checkSession } from '@/lib/checkSession';
+
+const { user, redirect } = await checkSession(Astro.cookies);
+
+if (redirect) {
+  return Astro.redirect(redirect);
+}
+---
+
+<Layout
+  title='View RelationshipGraph'
+  isAuth={!!user}
+>
+  <RelationshipGraphEntry client:load>
+    <div slot='fallback'>Loading...</div>
+  </RelationshipGraphEntry>
+</Layout>

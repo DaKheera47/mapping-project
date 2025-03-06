@@ -59,8 +59,6 @@ const EditModalContent = ({
     }
   };
 
-  console.log(!name || !type || !description);
-
   return (
     <DialogContent className="sm:max-w-[425px]">
       <DialogHeader>

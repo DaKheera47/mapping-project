@@ -30,7 +30,7 @@ const AddModalContent = ({
   const [location, setLocation] = useState('');
   const [type, setType] = useState('');
 
-  const handleAdd = async () => {
+  const handleAdd = async (_e: React.FormEvent<HTMLFormElement>) => {
     try {
       const typeEntity = allEntityTypes.find(
         currentType => currentType.name === type

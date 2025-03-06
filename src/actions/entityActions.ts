@@ -23,9 +23,11 @@ export const entities = {
       location: z.string(),
       type: z.number(),
     }),
-    handler: async ({ name, description, location }) => {
+    handler: async ({ name, description, location, type }) => {
       try {
-        await db.insert(Entity).values({ name, description, location });
+        await db
+          .insert(Entity)
+          .values({ name, description, location, typeId: type });
         return { success: true };
       } catch (error: any) {
         return { success: false, error: error.message };

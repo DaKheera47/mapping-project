@@ -1,7 +1,7 @@
 ---
 import { buttonVariants } from '@/components/ui/button';
-import Layout from '@/layouts/Layout.astro';
 import { appDisplayName } from '@/config/metadata.json';
+import Layout from '@/layouts/Layout.astro';
 import { checkSession } from '@/lib/checkSession';
 
 const { user, redirect } = await checkSession(Astro.cookies);
@@ -12,10 +12,13 @@ if (user) {
 ---
 
 <Layout title='Home'>
-  <div class='flex h-screen flex-col items-center justify-center'>
-    <h1 class='text-4xl font-bold'>Welcome to {appDisplayName}</h1>
+  <div class='container mx-auto flex flex-col items-center py-16'>
+    <h1 class='text-center text-4xl font-bold text-balance'>
+      Welcome to <br />
+      {appDisplayName}
+    </h1>
 
-    <div class='mt-8 grid grid-cols-3 gap-4'>
+    <div class='mt-8 flex gap-4'>
       <a
         class={buttonVariants()}
         href='/signin'

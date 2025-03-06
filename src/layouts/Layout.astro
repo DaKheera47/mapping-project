@@ -1,5 +1,6 @@
 ---
 import Navbar from '@/components/Navbar.astro';
+import ThemeHeadScript from '@/components/theme-head-script.astro';
 import { appDisplayName } from '@/config/metadata.json';
 import '@/styles/global.css';
 
@@ -24,12 +25,16 @@ const { title, isAuth } = Astro.props;
       content={Astro.generator}
     />
     <title>{title} - {appDisplayName}</title>
+
+    <ThemeHeadScript />
   </head>
 
   <body class='h-screen w-screen'>
     <Navbar isAuth={isAuth} />
 
-    <main class='flex h-[calc(100vh_-_68px)] flex-col items-center justify-center'>
+    <main
+      class='flex h-[calc(100vh_-_68px)] flex-col items-center justify-center'
+    >
       <section class='container mx-auto h-full'>
         <slot />
       </section>

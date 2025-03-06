@@ -41,7 +41,7 @@ export default function EntityTypesEntry() {
                     <AddModalContent />
                   </Dialog>
                 </div>
-                <div className="mt-1 text-sm text-gray-500">
+                <div className="mt-1 text-sm text-neutral-500">
                   {entityTypes.entityTypes.length} entity types found
                 </div>
               </div>

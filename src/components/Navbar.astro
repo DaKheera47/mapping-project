@@ -3,6 +3,7 @@ import { Astronav, MenuIcon, MenuItems } from 'astro-navbar';
 
 import { appDisplayName } from '@/config/metadata.json';
 import { buttonVariants } from './ui/button';
+import ThemeDropdown from './theme-dropdown';
 
 const links = [
   {
@@ -58,7 +59,7 @@ const links = [
 const { isAuth } = Astro.props;
 ---
 
-<header class='border border-neutral-200'>
+<header class='border border-neutral-200 dark:border-neutral-700'>
   <div class='container mx-auto items-center gap-4 p-4 lg:flex'>
     <Astronav>
       <div class='flex w-full justify-between'>
@@ -70,6 +71,8 @@ const { isAuth } = Astro.props;
         >
           {appDisplayName}
         </a>
+
+        <ThemeDropdown client:load />
 
         <div class='flex lg:hidden'>
           <MenuIcon class='size-4 text-neutral-800' />

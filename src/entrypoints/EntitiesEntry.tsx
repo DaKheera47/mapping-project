@@ -45,7 +45,7 @@ export default function IndexEntry() {
                     <AddModalContent allEntityTypes={entityTypes.entityTypes} />
                   </Dialog>
                 </div>
-                <div className="mt-1 text-sm text-gray-500">
+                <div className="mt-1 text-sm text-neutral-500">
                   {entities.entities.length} entities found
                 </div>
               </div>

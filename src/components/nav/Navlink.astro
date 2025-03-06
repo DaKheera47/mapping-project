@@ -1,0 +1,20 @@
+---
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+
+const { name, href, className } = Astro.props;
+---
+
+<li>
+  <a
+    href={href}
+    class={cn(
+      buttonVariants({
+        variant: 'link',
+      }),
+      className
+    )}
+  >
+    {name}
+  </a>
+</li>

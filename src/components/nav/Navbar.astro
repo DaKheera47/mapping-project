@@ -1,0 +1,107 @@
+---
+import { Button, buttonVariants } from '@/components/ui/button';
+import { appDisplayName } from '@/config/metadata.json';
+import {
+  Astronav,
+  Dropdown,
+  DropdownItems,
+  MenuIcon,
+  MenuItems,
+} from 'astro-navbar';
+import { ChevronDownIcon } from 'lucide-react';
+import Navlink from './Navlink.astro';
+import ThemeDropdown from './theme-dropdown';
+
+const TABLE_LINKS = [
+  {
+    name: 'Entities',
+    href: '/entities',
+  },
+  {
+    name: 'Entity Types',
+    href: '/entity-types',
+  },
+  {
+    name: 'Relationships',
+    href: '/relationships',
+  },
+  {
+    name: 'Relationship Types',
+    href: '/relationship-types',
+  },
+];
+
+const { isAuth } = Astro.props;
+---
+
+<header class='border border-neutral-200 dark:border-neutral-700'>
+  <div class='container mx-auto items-center gap-4 p-4 lg:flex'>
+    <Astronav>
+      <div class='flex w-full justify-between'>
+        <a
+          href='/'
+          class={buttonVariants({
+            variant: 'ghost',
+          })}
+        >
+          {appDisplayName}
+        </a>
+
+        <ThemeDropdown client:load />
+
+        <div class='flex lg:hidden'>
+          <MenuIcon class='size-4 text-neutral-800' />
+        </div>
+      </div>
+
+      <MenuItems class='hidden lg:flex'>
+        <ul class='flex flex-col items-center lg:flex-row lg:gap-2'>
+          <Navlink
+            href='/'
+            name='Home'
+          />
+
+          {
+            isAuth && (
+              <>
+                <li>
+                  <Dropdown class='group'>
+                    <Button
+                      className='flex items-center'
+                      variant='ghost'
+                    >
+                      <span>Services</span>
+
+                      <ChevronDownIcon className='mt-0.5 h-3 w-3 group-open:rotate-180' />
+                    </Button>
+
+                    <DropdownItems class='relative'>
+                      <div class='absolute top-0 left-0 z-20 rounded-md border border-neutral-200 p-4 backdrop-blur-xl dark:border-neutral-700'>
+                        <ul class='space-y-2'>
+                          {TABLE_LINKS.map(link => (
+                            <Navlink
+                              key={link.href}
+                              href={link.href}
+                              name={link.name}
+                              className='text-right'
+                            />
+                          ))}
+                        </ul>
+                      </div>
+                    </DropdownItems>
+                  </Dropdown>
+                </li>
+                <li>
+                  <Navlink
+                    href='/api/auth/signout'
+                    name='Sign Out'
+                  />
+                </li>
+              </>
+            )
+          }
+        </ul>
+      </MenuItems>
+    </Astronav>
+  </div>
+</header>

@@ -14,7 +14,7 @@ if (redirect) {
   title='View RelationshipGraph'
   isAuth={!!user}
 >
-  <RelationshipGraphEntry client:load>
+  <RelationshipGraphEntry client:only>
     <div slot='fallback'>Loading...</div>
   </RelationshipGraphEntry>
 </Layout>

@@ -48,5 +48,13 @@ graph TD
 
 type Props = {};
 export default function RelationshipGraph({}: Props) {
-  return <MermaidRenderer chart={mdMermaid} />;
+  return (
+    <div className="h-full">
+      <div>
+        <h1 className="text-3xl font-bold">Relationship Graph</h1>
+      </div>
+
+      <MermaidRenderer chart={mdMermaid} containerClassName="w-3/5 h-full" />
+    </div>
+  );
 }

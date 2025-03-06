@@ -2,6 +2,7 @@ import { defineAction } from 'astro:actions';
 import { z } from 'astro:schema';
 import { entities } from './entityActions';
 import { entityTypes } from './entityTypeActions';
+import { relationshipTypes } from './relationshipTypeActions';
 
 export const server = {
   getServerTime: defineAction({
@@ -15,4 +16,5 @@ export const server = {
   }),
   entities,
   entityTypes,
+  relationshipTypes,
 };

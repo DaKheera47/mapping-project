@@ -75,7 +75,7 @@ const AddModalContent = () => {
           <Button variant="ghost">Cancel</Button>
         </DialogClose>
 
-        <Button form="add-modal-form" disabled={!name || !description}>
+        <Button form="add-modal-form" disabled={!name}>
           Save
         </Button>
       </DialogFooter>

@@ -80,7 +80,7 @@ const EditModalContent = ({ relationshipType }: { relationshipType: Relationship
         </DialogClose>
 
         <Button
-          disabled={!name || !description}
+          disabled={!name}
           form={`edit-modal-${relationshipType.id}`}
           type="submit"
         >

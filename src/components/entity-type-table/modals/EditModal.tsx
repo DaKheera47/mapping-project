@@ -80,7 +80,7 @@ const EditModalContent = ({ entityType }: { entityType: EntityType }) => {
         </DialogClose>
 
         <Button
-          disabled={!name || !description}
+          disabled={!name}
           form={`edit-modal-${entityType.id}`}
           type="submit"
         >

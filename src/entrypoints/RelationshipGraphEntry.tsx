@@ -1,7 +1,7 @@
 import MermaidRenderer from '@/components/mermaid-renderer/renderer';
 
 const mdMermaid = `
-graph TD
+graph LR
     %% Define subgraphs for clarity (optional)
     A[Kerry Yates]
     B[Ian Bain]
@@ -49,12 +49,15 @@ graph TD
 type Props = {};
 export default function RelationshipGraph({}: Props) {
   return (
-    <div className="h-full">
-      <div>
-        <h1 className="text-3xl font-bold">Relationship Graph</h1>
+    <div className="container mx-auto flex h-full w-full flex-col items-center space-y-4 py-10">
+      <div className="flex flex-col w-full">
+        <h1 className="text-4xl font-bold">Relationship Graph</h1>
+        <div className="mt-1 text-sm text-neutral-500">
+          A graph of the relationships between different entities
+        </div>
       </div>
 
-      <MermaidRenderer chart={mdMermaid} containerClassName="w-3/5 h-full" />
+      <MermaidRenderer chart={mdMermaid} containerClassName="w-full h-full" />
     </div>
   );
 }

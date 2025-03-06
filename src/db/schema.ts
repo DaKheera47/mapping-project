@@ -109,3 +109,8 @@ export type EntityType = InferSelectModel<typeof EntityType>;
 export type Entity = InferSelectModel<typeof Entity> & {
   type: EntityType;
 };
+export type Relationship = InferSelectModel<typeof Relationship> & {
+  startEntity: Entity;
+  endEntity: Entity;
+  type: RelationshipType;
+};

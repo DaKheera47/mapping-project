@@ -2,6 +2,7 @@ import { defineAction } from 'astro:actions';
 import { z } from 'astro:schema';
 import { entities } from './entityActions';
 import { entityTypes } from './entityTypeActions';
+import { relationships } from './relationshipActions';
 import { relationshipTypes } from './relationshipTypeActions';
 
 export const server = {
@@ -16,5 +17,6 @@ export const server = {
   }),
   entities,
   entityTypes,
+  relationships,
   relationshipTypes,
 };

@@ -1,5 +1,5 @@
-import { getColumns } from '@/components/entity-type-table/columns';
-import AddModalContent from '@/components/entity-type-table/modals/AddModal';
+import { getColumns } from '@/components/relationship-table/columns';
+import AddModalContent from '@/components/relationship-table/modals/AddModal';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
 import { DialogTrigger } from '@/components/ui/dialog';
@@ -9,13 +9,21 @@ import { actions } from 'astro:actions';
 import { PlusIcon, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 
-export default function EntityTypesEntry() {
+export default function IndexEntry() {
   const [flag, setFlag] = useState(false);
   const {
-    data: entityTypes,
+    data: relationships,
     error,
     loading,
-  } = useAction(actions.entityTypes.getAllEntityTypes, {}, flag);
+  } = useAction(actions.relationships.getAllRelationships, {}, flag);
+  const { data: allEntities } = useAction(
+    actions.entities.getAllEntities,
+    {},
+    flag
+  );
+  const { data: relationshipTypes } = useAction(
+    actions.relationshipTypes.getAllRelationshipTypes
+  );
 
   return (
     <div className="container mx-auto py-10">
@@ -24,12 +32,14 @@ export default function EntityTypesEntry() {
       ) : error ? (
         <div className="text-center text-red-500">Error: {error.message}</div>
       ) : (
-        entityTypes && (
+        allEntities &&
+        relationships &&
+        relationshipTypes && (
           <div className="flex w-full flex-col items-center space-y-4">
             <div className="flex w-full items-center justify-between">
               <div>
                 <div className="flex items-center space-x-4">
-                  <h1 className="text-4xl font-bold">Entity Types</h1>
+                  <h1 className="text-4xl font-bold">Relationships</h1>
 
                   <Dialog>
                     <DialogTrigger>
@@ -38,18 +48,22 @@ export default function EntityTypesEntry() {
                       </Button>
                     </DialogTrigger>
 
-                    <AddModalContent />
+                    <AddModalContent
+                      allRelationshipTypes={relationshipTypes.relationshipTypes}
+                      // @ts-ignore idk why this is throwing an error
+                      allEntities={allEntities.entities}
+                    />
                   </Dialog>
                 </div>
                 <div className="mt-1 text-sm text-neutral-500">
-                  {entityTypes.entityTypes.length} entity type
-                  {entityTypes.entityTypes.length > 1 ? 's' : ''} found
+                  {relationships.relationships.length} relationship
+                  {relationships.relationships.length > 1 ? 's' : ''} found
                 </div>
               </div>
 
               <div>
                 <span className="font-mono">
-                  Last updated: {entityTypes.serverTime}
+                  Last updated: {relationships.serverTime}
                 </span>
                 <Button
                   variant="ghost"
@@ -62,8 +76,13 @@ export default function EntityTypesEntry() {
             </div>
 
             <DataTable
-              columns={getColumns()}
-              data={entityTypes.entityTypes}
+              // @ts-ignore idk why this is throwing an error
+              columns={getColumns(
+                relationshipTypes.relationshipTypes,
+                // @ts-ignore idk why this is throwing an error
+                allEntities.entities
+              )}
+              data={relationships.relationships}
               className="w-full"
             />
           </div>

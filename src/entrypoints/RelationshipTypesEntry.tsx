@@ -42,7 +42,9 @@ export default function RelationshipTypesEntry() {
                   </Dialog>
                 </div>
                 <div className="mt-1 text-sm text-neutral-500">
-                  {relationshipTypes.relationshipTypes.length} relationship types found
+                  {relationshipTypes.relationshipTypes.length} relationship type
+                  {relationshipTypes.relationshipTypes.length > 1 ? 's' : ''}{' '}
+                  found
                 </div>
               </div>
 

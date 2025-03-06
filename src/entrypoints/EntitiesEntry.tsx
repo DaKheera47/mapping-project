@@ -46,7 +46,8 @@ export default function IndexEntry() {
                   </Dialog>
                 </div>
                 <div className="mt-1 text-sm text-neutral-500">
-                  {entities.entities.length} entities found
+                  {entities.entities.length}{' '}
+                  {entities.entities.length > 1 ? 'entities' : 'entity'} found
                 </div>
               </div>
 

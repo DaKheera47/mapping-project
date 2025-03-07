@@ -141,7 +141,7 @@ const EditModalContent = ({
         </DialogClose>
 
         <Button
-          disabled={!name || !type || !description}
+          disabled={!name || !type}
           form={`edit-modal-${entity.id}`}
           type="submit"
         >

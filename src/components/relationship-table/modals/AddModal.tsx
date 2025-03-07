@@ -75,15 +75,25 @@ const AddModalContent = ({
 
       <form id="add-modal" className="grid gap-4 py-4" onSubmit={handleAdd}>
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="description" className="text-right">
-            Description
+          <Label htmlFor="entity-start" className="text-right">
+            Start Entity
           </Label>
-          <Input
-            id="description"
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            className="col-span-3"
-          />
+          <Select value={startEntity} onValueChange={setStartEntity}>
+            <SelectTrigger className="col-span-3 w-full">
+              <SelectValue placeholder="Select a start entity" />
+            </SelectTrigger>
+            <SelectContent className="col-span-3 w-full">
+              {allEntities.map(currentEntity => (
+                <SelectItem
+                  key={currentEntity.id}
+                  value={currentEntity?.name ?? ''}
+                  onSelect={() => setStartEntity(currentEntity?.name ?? '')}
+                >
+                  {currentEntity.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="grid grid-cols-4 items-center gap-4">
@@ -102,28 +112,6 @@ const AddModalContent = ({
                   onSelect={() => setType(currentType?.name ?? '')}
                 >
                   {currentType.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="entity-start" className="text-right">
-            Start Entity
-          </Label>
-          <Select value={startEntity} onValueChange={setStartEntity}>
-            <SelectTrigger className="col-span-3 w-full">
-              <SelectValue placeholder="Select a start entity" />
-            </SelectTrigger>
-            <SelectContent className="col-span-3 w-full">
-              {allEntities.map(currentEntity => (
-                <SelectItem
-                  key={currentEntity.id}
-                  value={currentEntity?.name ?? ''}
-                  onSelect={() => setStartEntity(currentEntity?.name ?? '')}
-                >
-                  {currentEntity.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -150,6 +138,18 @@ const AddModalContent = ({
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="description" className="text-right">
+            Description
+          </Label>
+          <Input
+            id="description"
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+            className="col-span-3"
+          />
         </div>
       </form>
 

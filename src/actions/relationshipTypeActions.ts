@@ -16,10 +16,11 @@ export const relationshipTypes = {
     input: z.object({
       name: z.string(),
       description: z.string(),
+      dot: z.string().optional(),
     }),
-    handler: async ({ name, description }) => {
+    handler: async ({ name, description, dot }) => {
       try {
-        await db.insert(RelationshipType).values({ name, description });
+        await db.insert(RelationshipType).values({ name, description, dot });
         return { success: true };
       } catch (error: any) {
         return { success: false, error: error.message };
@@ -31,12 +32,13 @@ export const relationshipTypes = {
       id: z.number(),
       name: z.string(),
       description: z.string(),
+      dot: z.string().optional(),
     }),
-    handler: async ({ id, name, description }) => {
+    handler: async ({ id, name, description, dot }) => {
       try {
         await db
           .update(RelationshipType)
-          .set({ name, description })
+          .set({ name, description, dot })
           .where(eq(RelationshipType.id, id));
 
         return { success: true };

@@ -10,7 +10,7 @@ import {
 import type { RelationshipType } from '@/db/schema';
 import { MoreHorizontal } from 'lucide-react';
 import DeleteModalContent from './modals/DeleteModal';
-import EditModalContent from './modals/EditModal';
+import AddEditModal from './modals/AddEditModal';
 
 type Props = {
   relationshipType: RelationshipType;
@@ -41,7 +41,7 @@ export default function RowActions({ relationshipType }: Props) {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <EditModalContent relationshipType={relationshipType} />
+        <AddEditModal mode="edit" relationshipType={relationshipType} />
         <DeleteModalContent relationshipType={relationshipType} />
       </AlertDialog>
     </Dialog>

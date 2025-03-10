@@ -1,5 +1,5 @@
 import { getColumns } from '@/components/entity-type-table/columns';
-import AddModalContent from '@/components/entity-type-table/modals/AddModal';
+import AddEditModal from '@/components/entity-type-table/modals/AddEditModal';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
 import { DialogTrigger } from '@/components/ui/dialog';
@@ -21,7 +21,7 @@ export default function EntityTypesEntry() {
   return (
     <div className="container mx-auto py-10">
       {loading ? (
-        <div className="w-full flex items-center justify-center">
+        <div className="flex w-full items-center justify-center">
           <Loading />
         </div>
       ) : error ? (
@@ -41,7 +41,7 @@ export default function EntityTypesEntry() {
                       </Button>
                     </DialogTrigger>
 
-                    <AddModalContent />
+                    <AddEditModal mode="add" />
                   </Dialog>
                 </div>
                 <div className="mt-1 text-sm text-neutral-500">

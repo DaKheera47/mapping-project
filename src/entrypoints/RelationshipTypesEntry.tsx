@@ -1,5 +1,5 @@
 import { getColumns } from '@/components/relationship-type-table/columns';
-import AddModalContent from '@/components/relationship-type-table/modals/AddModal';
+import AddEditModal from '@/components/relationship-type-table/modals/AddEditModal';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
 import { DialogTrigger } from '@/components/ui/dialog';
@@ -41,7 +41,7 @@ export default function RelationshipTypesEntry() {
                       </Button>
                     </DialogTrigger>
 
-                    <AddModalContent />
+                    <AddEditModal mode='add' />
                   </Dialog>
                 </div>
                 <div className="mt-1 text-sm text-neutral-500">

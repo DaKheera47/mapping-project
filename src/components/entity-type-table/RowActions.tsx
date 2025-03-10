@@ -10,7 +10,7 @@ import {
 import type { EntityType } from '@/db/schema';
 import { MoreHorizontal } from 'lucide-react';
 import DeleteModalContent from './modals/DeleteModal';
-import EditModalContent from './modals/EditModal';
+import AddEditModal from './modals/AddEditModal';
 
 type Props = {
   entityType: EntityType;
@@ -41,7 +41,7 @@ export default function RowActions({ entityType }: Props) {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <EditModalContent entityType={entityType} />
+        <AddEditModal mode="edit" entityType={entityType} />
         <DeleteModalContent entityType={entityType} />
       </AlertDialog>
     </Dialog>

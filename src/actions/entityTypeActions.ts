@@ -16,10 +16,11 @@ export const entityTypes = {
     input: z.object({
       name: z.string(),
       description: z.string(),
+      dot: z.string().optional(),
     }),
-    handler: async ({ name, description }) => {
+    handler: async ({ name, description, dot }) => {
       try {
-        await db.insert(EntityType).values({ name, description });
+        await db.insert(EntityType).values({ name, description, dot });
         return { success: true };
       } catch (error: any) {
         return { success: false, error: error.message };
@@ -31,12 +32,13 @@ export const entityTypes = {
       id: z.number(),
       name: z.string(),
       description: z.string(),
+      dot: z.string().optional(),
     }),
-    handler: async ({ id, name, description }) => {
+    handler: async ({ id, name, description, dot }) => {
       try {
         await db
           .update(EntityType)
-          .set({ name, description })
+          .set({ name, description, dot })
           .where(eq(EntityType.id, id));
 
         return { success: true };

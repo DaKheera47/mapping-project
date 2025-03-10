@@ -137,7 +137,6 @@ const RelationshipModalContent = ({
 
   // Helper function to handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
     setError(null);
 
     try {

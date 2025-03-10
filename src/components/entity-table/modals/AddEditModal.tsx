@@ -49,7 +49,6 @@ const EntityModalContent = ({
     mode === 'add' ? 'add-entity-modal' : `edit-entity-modal-${entity?.id}`;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
     setError(null);
 
     try {

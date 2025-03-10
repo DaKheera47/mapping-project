@@ -12,26 +12,35 @@ import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Entity, Relationship, RelationshipType } from '@/db/schema';
+import type {
+  Entity,
+  Relationship,
+  RelationshipType,
+  EntityType,
+} from '@/db/schema';
 import { actions } from 'astro:actions';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 
 type RelationshipModalContentProps = {
   mode: 'add' | 'edit';
   relationship?: Relationship;
   allRelationshipTypes: RelationshipType[];
   allEntities: Entity[];
+  allEntityTypes: EntityType[];
 };
 
-const AddEditModal = ({
+const RelationshipModalContent = ({
   mode,
   relationship,
   allRelationshipTypes,
   allEntities,
+  allEntityTypes,
 }: RelationshipModalContentProps) => {
   // Initialize state based on mode and provided relationship
   const [type, setType] = useState(relationship?.type?.name ?? '');
@@ -49,6 +58,60 @@ const AddEditModal = ({
   // Track available end entities
   const [availableEndEntities, setAvailableEndEntities] =
     useState<Entity[]>(allEntities);
+
+  // Group entities by their type
+  const entitiesByType = useMemo(() => {
+    const grouped: {
+      [typeId: number]: { typeName: string; entities: Entity[] };
+    } = {};
+
+    // Initialize groups for all entity types
+    allEntityTypes.forEach(type => {
+      grouped[type.id] = {
+        typeName: type.name || 'Unknown',
+        entities: [],
+      };
+    });
+
+    // Add entities to their type groups
+    allEntities.forEach(entity => {
+      if (entity.typeId && grouped[entity.typeId]) {
+        grouped[entity.typeId].entities.push(entity);
+      }
+    });
+
+    // Filter out empty groups
+    return Object.fromEntries(
+      Object.entries(grouped).filter(([_, group]) => group.entities.length > 0)
+    );
+  }, [allEntities, allEntityTypes]);
+
+  // Group available end entities by their type
+  const availableEndEntitiesByType = useMemo(() => {
+    const grouped: {
+      [typeId: number]: { typeName: string; entities: Entity[] };
+    } = {};
+
+    // Initialize groups for all entity types
+    allEntityTypes.forEach(type => {
+      grouped[type.id] = {
+        typeName: type.name || 'Unknown',
+        entities: [],
+      };
+    });
+
+    // Add available end entities to their type groups
+    availableEndEntities.forEach(entity => {
+      if (entity.typeId && grouped[entity.typeId]) {
+        grouped[entity.typeId].entities.push(entity);
+      }
+    });
+
+    // Filter out empty groups
+    return Object.fromEntries(
+      Object.entries(grouped).filter(([_, group]) => group.entities.length > 0)
+    );
+  }, [availableEndEntities, allEntityTypes]);
 
   // Update available end entities whenever the start entity changes
   useEffect(() => {
@@ -148,7 +211,7 @@ const AddEditModal = ({
         <DialogDescription>
           {mode === 'add'
             ? 'Provide the details for your new relationship below.'
-            : 'Make changes to this relationship here.'}
+            : 'Make changes to this relationship here.'}{' '}
           Click save when you're done.
         </DialogDescription>
       </DialogHeader>
@@ -166,14 +229,19 @@ const AddEditModal = ({
             <SelectTrigger className="col-span-3 w-full">
               <SelectValue placeholder="Select a start entity" />
             </SelectTrigger>
-            <SelectContent className="col-span-3 w-full">
-              {allEntities.map(currentEntity => (
-                <SelectItem
-                  key={currentEntity.id}
-                  value={currentEntity?.name ?? ''}
-                >
-                  {currentEntity.name}
-                </SelectItem>
+            <SelectContent className="col-span-3 max-h-[var(--radix-select-content-available-height)] w-full overflow-y-auto">
+              {Object.values(entitiesByType).map(group => (
+                <SelectGroup key={`start-group-${group.typeName}`}>
+                  <SelectLabel>{group.typeName}</SelectLabel>
+                  {group.entities.map(entity => (
+                    <SelectItem
+                      key={`start-entity-${entity.id}`}
+                      value={entity?.name ?? ''}
+                    >
+                      {entity.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               ))}
             </SelectContent>
           </Select>
@@ -181,7 +249,7 @@ const AddEditModal = ({
 
         <div className="grid grid-cols-4 items-center gap-4">
           <Label htmlFor="type" className="text-right">
-            Type
+            Type*
           </Label>
           <Select value={type} onValueChange={setType}>
             <SelectTrigger className="col-span-3 w-full">
@@ -202,7 +270,7 @@ const AddEditModal = ({
 
         <div className="grid grid-cols-4 items-center gap-4">
           <Label htmlFor="entity-end" className="text-right">
-            End Entity
+            End Entity*
           </Label>
           <Select
             value={endEntity}
@@ -218,14 +286,19 @@ const AddEditModal = ({
                 }
               />
             </SelectTrigger>
-            <SelectContent className="col-span-3 w-full">
-              {availableEndEntities.map(currentEntity => (
-                <SelectItem
-                  key={currentEntity.id}
-                  value={currentEntity?.name ?? ''}
-                >
-                  {currentEntity.name}
-                </SelectItem>
+            <SelectContent className="col-span-3 max-h-[var(--radix-select-content-available-height)] w-full overflow-y-auto">
+              {Object.values(availableEndEntitiesByType).map(group => (
+                <SelectGroup key={`end-group-${group.typeName}`}>
+                  <SelectLabel>{group.typeName}</SelectLabel>
+                  {group.entities.map(entity => (
+                    <SelectItem
+                      key={`end-entity-${entity.id}`}
+                      value={entity?.name ?? ''}
+                    >
+                      {entity.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               ))}
             </SelectContent>
           </Select>
@@ -261,4 +334,4 @@ const AddEditModal = ({
   );
 };
 
-export default AddEditModal;
+export default RelationshipModalContent;

@@ -38,7 +38,7 @@ export default function MermaidRenderer({ chart, containerClassName }: Props) {
     };
 
     renderMermaid();
-  }, []);
+  }, [chart]);
 
   return (
     <div

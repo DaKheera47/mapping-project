@@ -1,12 +1,23 @@
-import type { Relationship } from '@/db/schema';
+import type { Relationship } from "@/db/schema";
 
-const generateNode = (name: string, index: number): string => {
-  // get alphabet at index
-  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  const alphabetIndex = index % alphabet.length;
-  const alphabetChar = alphabet[alphabetIndex];
+const generateNode = (name: string | null): string => {
+  if (!name || name === "") {
+    return "";
+  }
 
-  return `${alphabetChar}[${name}]`;
+  const noSpaceName = name.replace(/ /g, "");
+  return `  ci${noSpaceName}((${name}))\n`;
+};
+
+const generateEdge = (start: string | null, end: string | null): string => {
+  if (!start || start === "" || !end || end === "") {
+    return "";
+  }
+
+  const noSpaceStart = start.replace(/ /g, "");
+  const noSpaceEnd = end.replace(/ /g, "");
+
+  return `  ci${noSpaceStart} --- ci${noSpaceEnd}\n`;
 };
 
 interface Props {
@@ -14,81 +25,60 @@ interface Props {
 }
 
 export default function generateChart({ relationships }: Props): string {
-  const nodeMap = new Map<number, { label: string; name: string }>();
-  let nodeOrder: number[] = [];
-  let letterCounter = 0;
+  // sort relationships by number of relationships that entity shows up in either start or end
+  // we want to show the most connected entities first
+  // entities doesn't have a relationships array
+  // so we need to calculate the number of relationships for each entity
+  // and then sort the entities based on that
 
-  relationships.forEach(rel => {
-    const { startEntity, endEntity } = rel;
-    if (!nodeMap.has(startEntity.id)) {
-      letterCounter++;
-      nodeMap.set(startEntity.id, {
-        label: generateNode(startEntity.name ?? '', letterCounter),
-        name: startEntity.name ?? '',
-      });
-      nodeOrder.push(startEntity.id);
+  let entities = relationships.reduce((acc, relationship) => {
+    if (!acc[relationship.startEntity.name]) {
+      acc[relationship.startEntity.name] = 0;
     }
 
-    if (!nodeMap.has(endEntity.id)) {
-      letterCounter++;
-      nodeMap.set(endEntity.id, {
-        label: generateNode(endEntity.name ?? '', letterCounter),
-        name: endEntity.name ?? '',
-      });
-      nodeOrder.push(endEntity.id);
+    if (!acc[relationship.endEntity.name]) {
+      acc[relationship.endEntity.name] = 0;
     }
-  });
 
-  // Build node definitions
-  // For clarity we split into two groups: first half and second half.
-  const totalNodes = nodeOrder.length;
-  const half = Math.ceil(totalNodes / 2);
-  const firstGroup = nodeOrder
-    .slice(0, half)
-    .map(id => nodeMap.get(id)!.label)
-    .join('\n');
-  const secondGroup = nodeOrder
-    .slice(half)
-    .map(id => nodeMap.get(id)!.label)
-    .join('\n');
+    acc[relationship.startEntity.name]++;
+    acc[relationship.endEntity.name]++;
 
-  // Build edge definitions: for each relationship, output an edge from start to end.
-  // (Here we assume a solid edge for simplicity; you could vary the style based on relationship.type)
-  const edgeLines = relationships
-    .map(rel => {
-      const startLabel = nodeMap.get(rel.startEntity.id)!.label.split('[')[0]; // get letter only
-      const endLabel = nodeMap.get(rel.endEntity.id)!.label.split('[')[0];
-      // For demonstration, alternate between a solid edge and a dotted edge
-      const edgeStyle = rel.id % 2 === 0 ? '---' : '-.->';
-      return `    ${startLabel} ${edgeStyle} ${endLabel}`;
-    })
-    .join('\n');
+    return acc;
+  }, {} as Record<string, number>);
+  console.log(entities);
 
-  // Construct the full mermaid string
-  const mdMermaid = `
-graph LR
-    %% Define subgraphs for clarity (optional)
-    ${firstGroup}
+  relationships = relationships.sort((a, b) => {
+    return entities[b.startEntity.name] + entities[b.endEntity.name] -
+      entities[a.startEntity.name] - entities[a.endEntity.name];
+  }).reverse();
 
-    ${secondGroup}
+  let mdMermaid = `
+graph TD
+${
+    relationships.map((relationship) =>
+      generateNode(relationship.startEntity.name)
+    ).join("")
+  }
 
-    %% Example edges
-${edgeLines}
+${
+    relationships.map((relationship) =>
+      generateNode(relationship.endEntity.name)
+    ).join("")
+  }
 
-    %% Define classes for different node colors/styles
-    classDef pink fill:#f9c,stroke:#333,stroke-width:1px;
-    classDef teal fill:#aff,stroke:#333,stroke-width:1px;
-
-    %% Apply the classes (first group: pink, second group: teal)
-    class ${firstGroup
-      .split('\n')
-      .map(line => line.split('[')[0])
-      .join(',')} pink
-    class ${secondGroup
-      .split('\n')
-      .map(line => line.split('[')[0])
-      .join(',')} teal
+${
+    relationships
+      .map((relationship) =>
+        generateEdge(
+          relationship.startEntity.name,
+          relationship.endEntity.name,
+        )
+      )
+      .join("")
+  }
 `;
+
+  console.log(mdMermaid);
 
   return mdMermaid;
 }

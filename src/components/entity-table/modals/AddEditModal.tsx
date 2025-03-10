@@ -16,21 +16,42 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { EntityType } from '@/db/schema';
+import type { Entity, EntityType } from '@/db/schema';
 import { actions } from 'astro:actions';
 import { useState } from 'react';
 
-const AddModalContent = ({
-  allEntityTypes,
-}: {
+type EntityModalContentProps = {
+  mode: 'add' | 'edit';
+  entity?: Entity;
   allEntityTypes: EntityType[];
-}) => {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [location, setLocation] = useState('');
-  const [type, setType] = useState('');
+};
 
-  const handleAdd = async (_e: React.FormEvent<HTMLFormElement>) => {
+const EntityModalContent = ({
+  mode,
+  entity,
+  allEntityTypes,
+}: EntityModalContentProps) => {
+  // Initialize state based on mode
+  const [name, setName] = useState(mode === 'edit' ? (entity?.name ?? '') : '');
+  const [description, setDescription] = useState(
+    mode === 'edit' ? (entity?.description ?? '') : ''
+  );
+  const [location, setLocation] = useState(
+    mode === 'edit' ? (entity?.location ?? '') : ''
+  );
+  const [type, setType] = useState(
+    mode === 'edit' ? (entity?.type?.name ?? '') : ''
+  );
+  const [error, setError] = useState<string | null>(null);
+
+  // Form ID for reference
+  const formId =
+    mode === 'add' ? 'add-entity-modal' : `edit-entity-modal-${entity?.id}`;
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+
     try {
       const typeEntity = allEntityTypes.find(
         currentType => currentType.name === type
@@ -40,44 +61,76 @@ const AddModalContent = ({
         throw new Error('Invalid type selected');
       }
 
-      const result = await actions.entities.addEntity({
-        name,
-        description,
-        location,
-        type: typeEntity.id,
-      });
+      let result;
+
+      if (mode === 'add') {
+        result = await actions.entities.addEntity({
+          name,
+          description,
+          location,
+          type: typeEntity.id,
+        });
+      } else {
+        // Edit mode
+        if (!entity) {
+          throw new Error('Entity not provided for edit mode');
+        }
+
+        result = await actions.entities.editEntity({
+          id: entity.id,
+          name,
+          description,
+          location,
+          type: typeEntity.id,
+        });
+      }
 
       if (result.error) {
         throw new Error(result.error.message);
       }
     } catch (err) {
       console.error(err);
+      setError(err instanceof Error ? err.message : 'An error occurred');
     }
   };
 
   return (
     <DialogContent className="sm:max-w-[425px]">
       <DialogHeader>
-        <DialogTitle>Add new entity</DialogTitle>
+        <DialogTitle>
+          {mode === 'add' ? (
+            'Add new entity'
+          ) : (
+            <>
+              Edit entity <span className="italic">{entity?.name}</span>
+            </>
+          )}
+        </DialogTitle>
         <DialogDescription>
-          Provide the details for the new entity. Click save when you're done.
+          {mode === 'add'
+            ? 'Provide the details for the new entity.'
+            : 'Make changes to this entity here.'}
+          Click save when you're done.
         </DialogDescription>
       </DialogHeader>
 
-      <form
-        id="add-modal-form"
-        className="grid gap-4 py-4"
-        onSubmit={handleAdd}
-      >
+      {error && (
+        <div className="mb-4 rounded-md bg-red-100 p-3 text-red-800">
+          {error}
+        </div>
+      )}
+
+      <form id={formId} className="grid gap-4 py-4" onSubmit={handleSubmit}>
         <div className="grid grid-cols-4 items-center gap-4">
           <Label htmlFor="name" className="text-right">
-            Name
+            Name*
           </Label>
           <Input
             id="name"
             value={name}
             onChange={e => setName(e.target.value)}
             className="col-span-3"
+            required
           />
         </div>
 
@@ -107,16 +160,19 @@ const AddModalContent = ({
 
         <div className="grid grid-cols-4 items-center gap-4">
           <Label htmlFor="type" className="text-right">
-            Type
+            Type*
           </Label>
-          <Select value={type} onValueChange={setType}>
+          <Select value={type} onValueChange={setType} required>
             <SelectTrigger className="col-span-3 w-full">
               <SelectValue placeholder="Select a type" />
             </SelectTrigger>
 
             <SelectContent className="col-span-3 w-full">
               {allEntityTypes.map(currentType => (
-                <SelectItem key={currentType.id} value={currentType.name ?? ''}>
+                <SelectItem
+                  key={currentType.id}
+                  value={currentType?.name ?? ''}
+                >
                   {currentType.name}
                 </SelectItem>
               ))}
@@ -130,7 +186,7 @@ const AddModalContent = ({
           <Button variant="ghost">Cancel</Button>
         </DialogClose>
 
-        <Button form="add-modal-form" disabled={!name || !type}>
+        <Button disabled={!name || !type} form={formId} type="submit">
           Save
         </Button>
       </DialogFooter>
@@ -138,4 +194,4 @@ const AddModalContent = ({
   );
 };
 
-export default AddModalContent;
+export default EntityModalContent;

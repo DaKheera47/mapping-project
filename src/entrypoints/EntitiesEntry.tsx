@@ -1,5 +1,5 @@
 import { getColumns } from '@/components/entity-table/columns';
-import AddModalContent from '@/components/entity-table/modals/AddModal';
+import AddEditModal from '@/components/entity-table/modals/AddEditModal';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
 import { DialogTrigger } from '@/components/ui/dialog';
@@ -24,7 +24,7 @@ export default function IndexEntry() {
   return (
     <div className="container mx-auto py-10">
       {loading ? (
-        <div className="w-full flex items-center justify-center">
+        <div className="flex w-full items-center justify-center">
           <Loading />
         </div>
       ) : error ? (
@@ -45,7 +45,10 @@ export default function IndexEntry() {
                       </Button>
                     </DialogTrigger>
 
-                    <AddModalContent allEntityTypes={entityTypes.entityTypes} />
+                    <AddEditModal
+                      mode="add"
+                      allEntityTypes={entityTypes.entityTypes}
+                    />
                   </Dialog>
                 </div>
                 <div className="mt-1 text-sm text-neutral-500">

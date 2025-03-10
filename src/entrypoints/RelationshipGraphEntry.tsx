@@ -19,9 +19,27 @@ export default function RelationshipGraph({}: Props) {
     error: entitiesError,
     loading: entitiesLoading,
   } = useAction(actions.entities.getAllEntities, {}, flag);
+  const {
+    data: relationshipTypes,
+    error: relationshipTypesError,
+    loading: relationshipTypesLoading,
+  } = useAction(actions.relationshipTypes.getAllRelationshipTypes, {}, flag);
+  const {
+    data: entityTypes,
+    error: entityTypesError,
+    loading: entityTypesLoading,
+  } = useAction(actions.entityTypes.getAllEntityTypes, {}, flag);
 
-  const loading = relationshipsLoading || entitiesLoading;
-  const error = relationshipsError || entitiesError;
+  const loading =
+    relationshipsLoading ||
+    entitiesLoading ||
+    relationshipTypesLoading ||
+    entityTypesLoading;
+  const error =
+    relationshipsError ||
+    entitiesError ||
+    relationshipTypesError ||
+    entityTypesError;
 
   return (
     <div className="container mx-auto flex h-full w-full flex-col items-center space-y-4 py-10">
@@ -35,7 +53,11 @@ export default function RelationshipGraph({}: Props) {
         relationships &&
         relationships.relationships &&
         entities &&
-        entities.entities && (
+        entities.entities &&
+        relationshipTypes &&
+        relationshipTypes.relationshipTypes &&
+        entityTypes &&
+        entityTypes.entityTypes && (
           <>
             <div className="flex w-full flex-col">
               <div className="flex items-center space-x-4">
@@ -52,7 +74,9 @@ export default function RelationshipGraph({}: Props) {
             <GraphVizRenderer
               rerenderFlag={flag}
               entities={entities.entities as any}
+              entityTypes={entityTypes.entityTypes as any}
               relationships={relationships.relationships as any}
+              relationshipTypes={relationshipTypes.relationshipTypes as any}
             />
           </>
         )

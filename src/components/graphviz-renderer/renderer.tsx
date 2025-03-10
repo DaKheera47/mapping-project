@@ -17,13 +17,15 @@ export type EnhancedRelationship = Relationship & {
 
 export interface GraphProps {
   entities: (Entity & { type: EntityType })[];
+  entityTypes: EntityType[];
   rerenderFlag: boolean;
   relationships: EnhancedRelationship[];
   relationshipTypes: RelationshipType[];
 }
 
-const EntityGraph = ({
+const GraphVizRenderer = ({
   entities,
+  entityTypes,
   relationships,
   relationshipTypes,
   // this forces a rerender when the flag changes
@@ -39,6 +41,7 @@ const EntityGraph = ({
         // Generate the DOT representation of the graph
         const dot = generateGraphDOT(
           entities,
+          entityTypes,
           relationships,
           relationshipTypes
         );
@@ -68,4 +71,4 @@ const EntityGraph = ({
   );
 };
 
-export default EntityGraph;
+export default GraphVizRenderer;

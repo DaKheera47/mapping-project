@@ -34,6 +34,7 @@ export const EntityType = createTable('entityType', {
   id: serial('id').primaryKey(),
   name: text('name').default('Unknown'),
   description: text('description'),
+  dot: text('dot'),
 });
 
 // Relationship Type Table

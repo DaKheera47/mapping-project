@@ -1,4 +1,5 @@
 ---
+import { Loading } from '@/components/ui/loading';
 import EntitiesEntry from '@/entrypoints/EntitiesEntry';
 import Layout from '@/layouts/Layout.astro';
 import { checkSession } from '@/lib/checkSession';
@@ -10,8 +11,16 @@ if (redirect) {
 }
 ---
 
-<Layout title='View Entities' isAuth={!!user}>
+<Layout
+  title='View Entities'
+  isAuth={!!user}
+>
   <EntitiesEntry client:load>
-    <div slot='fallback'>Loading...</div>
+    <div
+      slot='fallback'
+      class='flex w-full items-center justify-center'
+    >
+      <Loading />
+    </div>
   </EntitiesEntry>
 </Layout>

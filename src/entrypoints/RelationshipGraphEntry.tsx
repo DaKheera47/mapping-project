@@ -1,5 +1,6 @@
 import generateChart from '@/components/mermaid-renderer/generateChart';
 import MermaidRenderer from '@/components/mermaid-renderer/renderer';
+import { Loading } from '@/components/ui/loading';
 import { useAction } from '@/hooks/useAction';
 import { actions } from 'astro:actions';
 import { useState } from 'react';
@@ -16,7 +17,9 @@ export default function RelationshipGraph({}: Props) {
   return (
     <div className="container mx-auto flex h-full w-full flex-col items-center space-y-4 py-10">
       {loading ? (
-        <div className="text-center">Loading...</div>
+        <div className="flex w-full items-center justify-center">
+          <Loading />
+        </div>
       ) : error ? (
         <div className="text-center text-red-500">Error: {error.message}</div>
       ) : (

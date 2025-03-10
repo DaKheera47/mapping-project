@@ -1,5 +1,5 @@
 import { getColumns } from '@/components/relationship-table/columns';
-import AddModalContent from '@/components/relationship-table/modals/AddModal';
+import AddEditModal from '@/components/relationship-table/modals/AddEditModal';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
 import { DialogTrigger } from '@/components/ui/dialog';
@@ -25,6 +25,9 @@ export default function IndexEntry() {
     actions.relationshipTypes.getAllRelationshipTypes
   );
 
+  const arePrerequisitesLoaded =
+    allEntities && relationships && relationshipTypes;
+
   return (
     <div className="container mx-auto py-10">
       {loading ? (
@@ -32,9 +35,7 @@ export default function IndexEntry() {
       ) : error ? (
         <div className="text-center text-red-500">Error: {error.message}</div>
       ) : (
-        allEntities &&
-        relationships &&
-        relationshipTypes && (
+        arePrerequisitesLoaded && (
           <div className="flex w-full flex-col items-center space-y-4">
             <div className="flex w-full items-center justify-between">
               <div>
@@ -48,7 +49,8 @@ export default function IndexEntry() {
                       </Button>
                     </DialogTrigger>
 
-                    <AddModalContent
+                    <AddEditModal
+                      mode="add"
                       allRelationshipTypes={relationshipTypes.relationshipTypes}
                       // @ts-ignore idk why this is throwing an error
                       allEntities={allEntities.entities}

@@ -16,23 +16,67 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Entity, RelationshipType } from '@/db/schema';
+import type { Entity, Relationship, RelationshipType } from '@/db/schema';
 import { actions } from 'astro:actions';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-const AddModalContent = ({
-  allRelationshipTypes,
-  allEntities,
-}: {
+type RelationshipModalContentProps = {
+  mode: 'add' | 'edit';
+  relationship?: Relationship;
   allRelationshipTypes: RelationshipType[];
   allEntities: Entity[];
-}) => {
-  const [type, setType] = useState('');
-  const [startEntity, setStartEntity] = useState('');
-  const [endEntity, setEndEntity] = useState('');
-  const [description, setDescription] = useState('');
+};
 
-  const handleAdd = async () => {
+const AddEditModal = ({
+  mode,
+  relationship,
+  allRelationshipTypes,
+  allEntities,
+}: RelationshipModalContentProps) => {
+  // Initialize state based on mode and provided relationship
+  const [type, setType] = useState(relationship?.type?.name ?? '');
+  const [startEntity, setStartEntity] = useState(
+    relationship?.startEntity?.name ?? ''
+  );
+  const [endEntity, setEndEntity] = useState(
+    relationship?.endEntity?.name ?? ''
+  );
+  const [description, setDescription] = useState(
+    relationship?.description ?? ''
+  );
+  const [error, setError] = useState<string | null>(null);
+
+  // Track available end entities
+  const [availableEndEntities, setAvailableEndEntities] =
+    useState<Entity[]>(allEntities);
+
+  // Update available end entities whenever the start entity changes
+  useEffect(() => {
+    if (startEntity) {
+      const selectedStartEntity = allEntities.find(
+        entity => entity.name === startEntity
+      );
+      if (selectedStartEntity) {
+        // Filter out the start entity from available end entities
+        setAvailableEndEntities(
+          allEntities.filter(entity => entity.id !== selectedStartEntity.id)
+        );
+
+        // If current end entity is the same as start entity, clear it
+        if (endEntity === startEntity) {
+          setEndEntity('');
+        }
+      }
+    } else {
+      setAvailableEndEntities(allEntities);
+    }
+  }, [startEntity, allEntities, endEntity]);
+
+  // Helper function to handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
     try {
       const typeRelationship = allRelationshipTypes.find(
         currentType => currentType.name === type
@@ -48,32 +92,72 @@ const AddModalContent = ({
         throw new Error('Invalid selection');
       }
 
-      const result = await actions.relationships.addRelationship({
-        description,
-        endEntityId: endEntityRecord.id,
-        startEntityId: startEntityRecord.id,
-        typeId: typeRelationship.id,
-      });
+      // Validate that start and end entities are different
+      if (startEntityRecord.id === endEntityRecord.id) {
+        setError('Start and end entities must be different');
+        return;
+      }
 
-      if (result.error) {
-        throw new Error(result.error.message);
+      // Handle add or edit based on mode
+      if (mode === 'add') {
+        const result = await actions.relationships.addRelationship({
+          description,
+          endEntityId: endEntityRecord.id,
+          startEntityId: startEntityRecord.id,
+          typeId: typeRelationship.id,
+        });
+
+        if (result.error) {
+          throw new Error(result.error.message);
+        }
+      } else {
+        // Edit mode
+        if (!relationship) {
+          throw new Error('Relationship not provided for edit mode');
+        }
+
+        const result = await actions.relationships.editRelationship({
+          id: relationship.id,
+          description,
+          endEntityId: endEntityRecord.id,
+          startEntityId: startEntityRecord.id,
+          typeId: typeRelationship.id,
+        });
+
+        if (result.error) {
+          throw new Error(result.error.message);
+        }
       }
     } catch (err) {
       console.error(err);
+      setError(err instanceof Error ? err.message : 'An error occurred');
     }
   };
+
+  const formId =
+    mode === 'add'
+      ? 'add-relationship-modal'
+      : `edit-relationship-modal-${relationship?.id}`;
 
   return (
     <DialogContent className="sm:max-w-[425px]">
       <DialogHeader>
-        <DialogTitle>Add Relationship</DialogTitle>
+        <DialogTitle>
+          {mode === 'add' ? 'Add Relationship' : 'Edit Relationship'}
+        </DialogTitle>
         <DialogDescription>
-          Provide the details for your new relationship below. Click save when
-          you&apos;re done.
+          {mode === 'add'
+            ? 'Provide the details for your new relationship below.'
+            : 'Make changes to this relationship here.'}
+          Click save when you're done.
         </DialogDescription>
       </DialogHeader>
 
-      <form id="add-modal" className="grid gap-4 py-4" onSubmit={handleAdd}>
+      {error && (
+        <div className="rounded-md bg-red-100 p-3 text-red-800">{error}</div>
+      )}
+
+      <form id={formId} className="grid gap-4 py-4" onSubmit={handleSubmit}>
         <div className="grid grid-cols-4 items-center gap-4">
           <Label htmlFor="entity-start" className="text-right">
             Start Entity
@@ -87,7 +171,6 @@ const AddModalContent = ({
                 <SelectItem
                   key={currentEntity.id}
                   value={currentEntity?.name ?? ''}
-                  onSelect={() => setStartEntity(currentEntity?.name ?? '')}
                 >
                   {currentEntity.name}
                 </SelectItem>
@@ -109,7 +192,6 @@ const AddModalContent = ({
                 <SelectItem
                   key={currentType.id}
                   value={currentType?.name ?? ''}
-                  onSelect={() => setType(currentType?.name ?? '')}
                 >
                   {currentType.name}
                 </SelectItem>
@@ -122,16 +204,25 @@ const AddModalContent = ({
           <Label htmlFor="entity-end" className="text-right">
             End Entity
           </Label>
-          <Select value={endEntity} onValueChange={setEndEntity}>
+          <Select
+            value={endEntity}
+            onValueChange={setEndEntity}
+            disabled={!startEntity}
+          >
             <SelectTrigger className="col-span-3 w-full">
-              <SelectValue placeholder="Select an end entity" />
+              <SelectValue
+                placeholder={
+                  !startEntity
+                    ? 'Select start entity first'
+                    : 'Select an end entity'
+                }
+              />
             </SelectTrigger>
             <SelectContent className="col-span-3 w-full">
-              {allEntities.map(currentEntity => (
+              {availableEndEntities.map(currentEntity => (
                 <SelectItem
                   key={currentEntity.id}
                   value={currentEntity?.name ?? ''}
-                  onSelect={() => setEndEntity(currentEntity?.name ?? '')}
                 >
                   {currentEntity.name}
                 </SelectItem>
@@ -160,7 +251,7 @@ const AddModalContent = ({
 
         <Button
           disabled={!type || !startEntity || !endEntity}
-          form="add-modal"
+          form={formId}
           type="submit"
         >
           Save
@@ -170,4 +261,4 @@ const AddModalContent = ({
   );
 };
 
-export default AddModalContent;
+export default AddEditModal;

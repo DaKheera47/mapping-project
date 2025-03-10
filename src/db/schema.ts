@@ -42,6 +42,7 @@ export const RelationshipType = createTable('relationshipType', {
   name: text('name').default('Unknown'),
   weight: numeric('weight').default('1.0'),
   description: text('description'),
+  dot: text('dot'),
 });
 
 // Relationship Table

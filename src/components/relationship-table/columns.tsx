@@ -1,10 +1,11 @@
-import type { Entity, Relationship, RelationshipType } from '@/db/schema';
+import type { Entity, EntityType, Relationship, RelationshipType } from '@/db/schema';
 import type { ColumnDef } from '@tanstack/react-table';
 import RowActions from './RowActions';
 
 export const getColumns = (
   allRelationshipTypes: RelationshipType[],
-  allEntities: Entity[]
+  allEntities: Entity[],
+  allEntityTypes: EntityType[]
 ): ColumnDef<Relationship>[] => {
   return [
     {
@@ -31,6 +32,7 @@ export const getColumns = (
           relationship={row.original}
           allRelationshipTypes={allRelationshipTypes}
           allEntities={allEntities}
+          allEntityTypes={allEntityTypes}
         />
       ),
     },

@@ -14,20 +14,38 @@ export default function IndexEntry() {
   const [flag, setFlag] = useState(false);
   const {
     data: relationships,
-    error,
-    loading,
+    error: relationshipsError,
+    loading: relationshipsLoading,
   } = useAction(actions.relationships.getAllRelationships, {}, flag);
-  const { data: allEntities } = useAction(
-    actions.entities.getAllEntities,
-    {},
-    flag
-  );
-  const { data: relationshipTypes } = useAction(
-    actions.relationshipTypes.getAllRelationshipTypes
-  );
+  const {
+    data: allEntities,
+    error: entitiesError,
+    loading: entitiesLoading,
+  } = useAction(actions.entities.getAllEntities, {}, flag);
+  const {
+    data: relationshipTypes,
+    error: relationshipTypesError,
+    loading: relationshipTypesLoading,
+  } = useAction(actions.relationshipTypes.getAllRelationshipTypes, {}, flag);
+  const {
+    data: allEntityTypes,
+    error: entityTypesError,
+    loading: entityTypesLoading,
+  } = useAction(actions.entityTypes.getAllEntityTypes, {}, flag);
+
+  const loading =
+    relationshipsLoading ||
+    entitiesLoading ||
+    relationshipTypesLoading ||
+    entityTypesLoading;
+  const error =
+    relationshipsError ||
+    entitiesError ||
+    relationshipTypesError ||
+    entityTypesError;
 
   const arePrerequisitesLoaded =
-    allEntities && relationships && relationshipTypes;
+    allEntities && relationships && relationshipTypes && allEntityTypes;
 
   return (
     <div className="container mx-auto py-10">
@@ -57,6 +75,8 @@ export default function IndexEntry() {
                       allRelationshipTypes={relationshipTypes.relationshipTypes}
                       // @ts-ignore idk why this is throwing an error
                       allEntities={allEntities.entities}
+                      // @ts-ignore idk why this is throwing an error
+                      allEntityTypes={allEntityTypes.entityTypes}
                     />
                   </Dialog>
                 </div>
@@ -85,7 +105,9 @@ export default function IndexEntry() {
               columns={getColumns(
                 relationshipTypes.relationshipTypes,
                 // @ts-ignore idk why this is throwing an error
-                allEntities.entities
+                allEntities.entities,
+                // @ts-ignore idk why this is throwing an error
+                allEntityTypes.entityTypes
               )}
               data={relationships.relationships}
               className="w-full"

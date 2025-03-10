@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { Entity, Relationship, RelationshipType } from '@/db/schema';
+import type { Entity, EntityType, Relationship, RelationshipType } from '@/db/schema';
 import { MoreHorizontal } from 'lucide-react';
 import DeleteModalContent from './modals/DeleteModal';
 import AddEditModal from './modals/AddEditModal';
@@ -16,12 +16,14 @@ type Props = {
   relationship: Relationship;
   allRelationshipTypes: RelationshipType[];
   allEntities: Entity[];
+  allEntityTypes: EntityType[];
 };
 
 export default function RowActions({
   relationship,
   allRelationshipTypes,
   allEntities,
+  allEntityTypes,
 }: Props) {
   return (
     <Dialog>
@@ -52,6 +54,7 @@ export default function RowActions({
           relationship={relationship}
           allRelationshipTypes={allRelationshipTypes}
           allEntities={allEntities}
+          allEntityTypes={allEntityTypes}
         />
         <DeleteModalContent relationship={relationship} />
       </AlertDialog>

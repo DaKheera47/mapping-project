@@ -3,6 +3,7 @@ import AddModalContent from '@/components/relationship-type-table/modals/AddModa
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
 import { DialogTrigger } from '@/components/ui/dialog';
+import { Loading } from '@/components/ui/loading';
 import { useAction } from '@/hooks/useAction';
 import { Dialog } from '@radix-ui/react-dialog';
 import { actions } from 'astro:actions';
@@ -20,7 +21,9 @@ export default function RelationshipTypesEntry() {
   return (
     <div className="container mx-auto py-10">
       {loading ? (
-        <div className="text-center">Loading...</div>
+        <div className="flex w-full items-center justify-center">
+          <Loading />
+        </div>
       ) : error ? (
         <div className="text-center text-red-500">Error: {error.message}</div>
       ) : (
@@ -43,7 +46,9 @@ export default function RelationshipTypesEntry() {
                 </div>
                 <div className="mt-1 text-sm text-neutral-500">
                   {relationshipTypes.relationshipTypes.length} relationship type
-                  {relationshipTypes.relationshipTypes.length > 1 ? 's' : ''}{' '}
+                  {relationshipTypes.relationshipTypes.length > 1
+                    ? 's'
+                    : ''}{' '}
                   found
                 </div>
               </div>

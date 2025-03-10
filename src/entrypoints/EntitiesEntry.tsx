@@ -1,8 +1,9 @@
 import { getColumns } from '@/components/entity-table/columns';
-import AddModalContent from '@/components/entity-table/modals/AddModal';
+import AddEditModal from '@/components/entity-table/modals/AddEditModal';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
 import { DialogTrigger } from '@/components/ui/dialog';
+import { Loading } from '@/components/ui/loading';
 import { useAction } from '@/hooks/useAction';
 import { Dialog } from '@radix-ui/react-dialog';
 import { actions } from 'astro:actions';
@@ -23,7 +24,9 @@ export default function IndexEntry() {
   return (
     <div className="container mx-auto py-10">
       {loading ? (
-        <div className="text-center">Loading...</div>
+        <div className="flex w-full items-center justify-center">
+          <Loading />
+        </div>
       ) : error ? (
         <div className="text-center text-red-500">Error: {error.message}</div>
       ) : (
@@ -42,7 +45,10 @@ export default function IndexEntry() {
                       </Button>
                     </DialogTrigger>
 
-                    <AddModalContent allEntityTypes={entityTypes.entityTypes} />
+                    <AddEditModal
+                      mode="add"
+                      allEntityTypes={entityTypes.entityTypes}
+                    />
                   </Dialog>
                 </div>
                 <div className="mt-1 text-sm text-neutral-500">

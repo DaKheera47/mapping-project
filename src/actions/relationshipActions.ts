@@ -1,8 +1,8 @@
-import { db } from '@/db';
-import { Relationship } from '@/db/schema';
-import { defineAction } from 'astro:actions';
-import { z } from 'astro:schema';
-import { eq } from 'drizzle-orm';
+import { db } from "@/db";
+import { Relationship } from "@/db/schema";
+import { defineAction } from "astro:actions";
+import { z } from "astro:schema";
+import { eq } from "drizzle-orm";
 
 export const relationships = {
   getAllRelationships: defineAction({
@@ -24,15 +24,30 @@ export const relationships = {
       endEntityId: z.number(),
       typeId: z.number(),
       description: z.string(),
-    }),
+    })
+      // Add validation to ensure startEntityId and endEntityId are not the same
+      .refine((data) => data.startEntityId !== data.endEntityId, {
+        message: "Start entity and end entity cannot be the same",
+        path: ["endEntityId"], // This will associate the error with the endEntityId field
+      }),
+
     handler: async ({ startEntityId, endEntityId, typeId, description }) => {
       try {
+        if (startEntityId === endEntityId) {
+          return {
+            success: false,
+            error: {
+              message: "Start entity and end entity cannot be the same",
+            },
+          };
+        }
+
         await db
           .insert(Relationship)
           .values({ startEntityId, endEntityId, typeId, description });
         return { success: true };
       } catch (error: any) {
-        return { success: false, error: error.message };
+        return { success: false, error: { message: error.message } };
       }
     },
   }),
@@ -43,7 +58,12 @@ export const relationships = {
       endEntityId: z.number(),
       typeId: z.number(),
       description: z.string(),
-    }),
+    })
+      // Add validation to ensure startEntityId and endEntityId are not the same
+      .refine((data) => data.startEntityId !== data.endEntityId, {
+        message: "Start entity and end entity cannot be the same",
+        path: ["endEntityId"],
+      }),
     handler: async ({
       id,
       startEntityId,
@@ -52,6 +72,15 @@ export const relationships = {
       description,
     }) => {
       try {
+        if (startEntityId === endEntityId) {
+          return {
+            success: false,
+            error: {
+              message: "Start entity and end entity cannot be the same",
+            },
+          };
+        }
+
         await db
           .update(Relationship)
           .set({ startEntityId, endEntityId, typeId, description })
@@ -59,7 +88,7 @@ export const relationships = {
 
         return { success: true };
       } catch (error: any) {
-        return { success: false, error: error.message };
+        return { success: false, error: { message: error.message } };
       }
     },
   }),
@@ -72,7 +101,7 @@ export const relationships = {
         await db.delete(Relationship).where(eq(Relationship.id, id));
         return { success: true };
       } catch (error: any) {
-        return { success: false, error: error.message };
+        return { success: false, error: { message: error.message } };
       }
     },
   }),

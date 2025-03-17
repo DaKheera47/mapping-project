@@ -1,8 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
+import { Loading } from '@/components/ui/loading';
 import {
   Select,
   SelectContent,
@@ -10,9 +8,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Slider } from '@/components/ui/slider';
 import { Graphviz } from '@hpcc-js/wasm-graphviz';
-import { Loading } from '@/components/ui/loading';
+import { useEffect, useState } from 'react';
 
 // Simplified interface with most common edge styling options
 interface EdgeStyle {
@@ -26,11 +24,11 @@ interface EdgeStyle {
 // Parse dot string to edge style object
 const parseDotString = (dotString: string): EdgeStyle => {
   const defaultStyle: EdgeStyle = {
-    color: 'black',
+    color: '#000000',
     style: 'solid',
     penwidth: 1.0,
     label: '',
-    fontcolor: 'black',
+    fontcolor: '#000000',
   };
 
   if (!dotString) return defaultStyle;

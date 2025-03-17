@@ -109,7 +109,7 @@ const GraphVizRenderer = ({
     return <div className="p-8 text-center text-red-600">Error: {error}</div>;
 
   return (
-    <div className="graph-container flex h-full w-full items-center justify-center overflow-hidden rounded-lg border shadow-lg">
+    <div className="graph-container relative flex h-full w-full items-center justify-center overflow-hidden rounded-lg border bg-white shadow-lg">
       <TransformWrapper
         initialScale={1}
         initialPositionX={0}
@@ -144,15 +144,24 @@ const GraphVizRenderer = ({
         {({ zoomIn, zoomOut, resetTransform }) => (
           <>
             <div className="absolute top-4 right-4 z-10 flex gap-2">
-              <Button onClick={() => zoomIn(0.2)} aria-label="Zoom in">
+              <Button
+                variant="outline"
+                onClick={() => zoomIn(0.2)}
+                aria-label="Zoom in"
+              >
                 <Plus />
               </Button>
 
-              <Button onClick={() => zoomOut(0.2)} aria-label="Zoom out">
+              <Button
+                variant="outline"
+                onClick={() => zoomOut(0.2)}
+                aria-label="Zoom out"
+              >
                 <Minus />
               </Button>
 
               <Button
+                variant="outline"
                 onClick={() => handleReset(resetTransform)}
                 aria-label="Reset zoom"
               >

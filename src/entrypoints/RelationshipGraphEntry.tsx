@@ -62,7 +62,7 @@ export default function RelationshipGraph({}: Props) {
             <div className="flex w-full flex-col">
               <div className="flex items-center space-x-4">
                 <h1 className="text-4xl font-bold">Relationship Graph</h1>
-                <Button variant="outline" onClick={() => setFlag(!flag)}>
+                <Button variant="ghost" onClick={() => setFlag(!flag)}>
                   <RotateCw />
                 </Button>
               </div>

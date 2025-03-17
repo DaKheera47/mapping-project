@@ -7,7 +7,7 @@ import { Loading } from '@/components/ui/loading';
 import { useAction } from '@/hooks/useAction';
 import { Dialog } from '@radix-ui/react-dialog';
 import { actions } from 'astro:actions';
-import { PlusIcon, RefreshCw } from 'lucide-react';
+import { FileUpIcon, PlusIcon, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 
 export default function IndexEntry() {
@@ -72,6 +72,23 @@ export default function IndexEntry() {
 
                     <AddEditModal
                       mode="add"
+                      allRelationshipTypes={relationshipTypes.relationshipTypes}
+                      // @ts-ignore idk why this is throwing an error
+                      allEntities={allEntities.entities}
+                      // @ts-ignore idk why this is throwing an error
+                      allEntityTypes={allEntityTypes.entityTypes}
+                    />
+                  </Dialog>
+
+                  <Dialog>
+                    <DialogTrigger>
+                      <Button variant="outline">
+                        <FileUpIcon />
+                      </Button>
+                    </DialogTrigger>
+
+                    <AddEditModal
+                      mode="bulk-import"
                       allRelationshipTypes={relationshipTypes.relationshipTypes}
                       // @ts-ignore idk why this is throwing an error
                       allEntities={allEntities.entities}

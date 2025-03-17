@@ -20,15 +20,16 @@ import {
 } from '@/components/ui/select';
 import type {
   Entity,
+  EntityType,
   Relationship,
   RelationshipType,
-  EntityType,
 } from '@/db/schema';
 import { actions } from 'astro:actions';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import BulkImportContent from './BulkImportContent';
 
 type RelationshipModalContentProps = {
-  mode: 'add' | 'edit';
+  mode: 'add' | 'edit' | 'bulk-import';
   relationship?: Relationship;
   allRelationshipTypes: RelationshipType[];
   allEntities: Entity[];
@@ -42,6 +43,16 @@ const RelationshipModalContent = ({
   allEntities,
   allEntityTypes,
 }: RelationshipModalContentProps) => {
+  // If mode is bulk-import, render the BulkImportContent component
+  if (mode === 'bulk-import') {
+    return (
+      <BulkImportContent
+        allRelationshipTypes={allRelationshipTypes}
+        allEntityTypes={allEntityTypes}
+      />
+    );
+  }
+
   // Initialize state based on mode and provided relationship
   const [type, setType] = useState(relationship?.type?.name ?? '');
   const [startEntity, setStartEntity] = useState(

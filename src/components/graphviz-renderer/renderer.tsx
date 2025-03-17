@@ -7,7 +7,7 @@ import type {
   RelationshipType,
 } from '@/db/schema';
 import { Graphviz } from '@hpcc-js/wasm-graphviz';
-import { House, Minus, Plus } from 'lucide-react';
+import { Download, House, Minus, Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch';
 import generateGraphDOT from './generateGraphDOT';
@@ -40,12 +40,13 @@ const GraphVizRenderer = ({
   const [error, setError] = useState<string | null>(null);
   const graphRef = useRef<HTMLDivElement>(null);
   const transformComponentRef = useRef(null);
+  const dotRef = useRef<string>('');
 
   useEffect(() => {
     const renderGraph = async () => {
       try {
         // Generate the DOT representation of the graph
-        const dot = generateGraphDOT(
+        dotRef.current = generateGraphDOT(
           entities,
           entityTypes,
           relationships,
@@ -54,7 +55,7 @@ const GraphVizRenderer = ({
 
         // Render the graph using Graphviz
         const graphviz = await Graphviz.load();
-        const svgOutput = graphviz.dot(dot);
+        const svgOutput = graphviz.dot(dotRef.current);
 
         // Process SVG to ensure it fills container but maintain original viewBox
         const processedSvg = svgOutput.replace(
@@ -166,6 +167,24 @@ const GraphVizRenderer = ({
                 aria-label="Reset zoom"
               >
                 <House />
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const blob = new Blob([dotRef.current], {
+                    type: 'text/plain',
+                  });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'graph.dot';
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+                aria-label="Download graph DOT file"
+              >
+                <Download />
               </Button>
             </div>
 

@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import {
+  Dialog,
   DialogClose,
   DialogContent,
   DialogDescription,
@@ -9,16 +10,8 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Table,
   TableBody,
@@ -28,9 +21,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import type {
-  Entity,
-  EntityType,
   Relationship,
   RelationshipSet,
   RelationshipType,
@@ -38,7 +30,7 @@ import type {
 import { actions } from 'astro:actions';
 import React, { useEffect, useMemo, useState } from 'react';
 
-type RelationshipModalContentProps = {
+type AddEditModalProps = {
   mode: 'add' | 'edit';
   relationshipSet?: RelationshipSet;
   allRelationships: Relationship[];
@@ -46,13 +38,13 @@ type RelationshipModalContentProps = {
   allRelationshipTypes: RelationshipType[];
 };
 
-const RelationshipModalContent = ({
+export default function AddEditModal({
   mode,
   relationshipSet,
   allRelationships,
   allRelationshipSets,
   allRelationshipTypes,
-}: RelationshipModalContentProps) => {
+}: AddEditModalProps) {
   // Initialize state based on mode and provided relationshipSet
   const [name, setName] = useState(relationshipSet?.name ?? '');
   const [description, setDescription] = useState(
@@ -65,10 +57,9 @@ const RelationshipModalContent = ({
   const [blacklist, setBlacklist] = useState<number[]>(
     relationshipSet?.blacklist ?? []
   );
+  const [activeTab, setActiveTab] = useState<string>('whitelist');
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'whitelist' | 'blacklist'>(
-    'whitelist'
-  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Group relationships by their type
   const relationshipsByType = useMemo(() => {
@@ -109,6 +100,8 @@ const RelationshipModalContent = ({
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
       if (mode === 'add') {
         const result = await actions.relationshipSets.addRelationshipSet({
@@ -145,6 +138,10 @@ const RelationshipModalContent = ({
           );
         }
       }
+
+      // If we got here, submission was successful
+      // reload the window
+      window.location.reload();
     } catch (err) {
       console.error(err);
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -177,7 +174,7 @@ const RelationshipModalContent = ({
       : `edit-relationshipset-modal-${relationshipSet?.id}`;
 
   return (
-    <DialogContent className="sm:max-w-[75vw]">
+    <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[75vw]">
       <DialogHeader>
         <DialogTitle>
           {mode === 'add' ? 'Add Relationship Set' : 'Edit Relationship Set'}
@@ -237,121 +234,147 @@ const RelationshipModalContent = ({
         </div>
 
         <div className="mt-4 border-t pt-4">
-          <div className="mb-4 flex border-b">
-            <Button
-              variant={activeTab === 'whitelist' ? 'default' : 'ghost'}
-              onClick={() => setActiveTab('whitelist')}
-              className="rounded-b-none"
-            >
-              Whitelist
-            </Button>
-            <Button
-              variant={activeTab === 'blacklist' ? 'default' : 'ghost'}
-              onClick={() => setActiveTab('blacklist')}
-              className="rounded-b-none"
-            >
-              Blacklist
-            </Button>
-          </div>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="mb-4 w-full">
+              <TabsTrigger value="whitelist" className="flex-1">
+                Whitelist ({whitelist.length})
+              </TabsTrigger>
+              <TabsTrigger value="blacklist" className="flex-1">
+                Blacklist ({blacklist.length})
+              </TabsTrigger>
+            </TabsList>
 
-          {activeTab === 'whitelist' ? (
-            <div className="max-h-[300px] overflow-y-auto rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[50px]"></TableHead>
-                    <TableHead>Relationship</TableHead>
-                    <TableHead>Type</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {Object.values(relationshipsByType).map(group => (
-                    <React.Fragment key={`whitelist-group-${group.typeName}`}>
-                      <TableRow className="bg-gray-50">
-                        <TableCell colSpan={3} className="font-medium">
-                          {group.typeName}
-                        </TableCell>
+            <TabsContent value="whitelist">
+              {Object.keys(relationshipsByType).length === 0 ? (
+                <div className="py-4 text-center text-gray-500">
+                  No relationships available to whitelist.
+                </div>
+              ) : (
+                <div className="max-h-[400px] overflow-y-auto border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[50px]"></TableHead>
+                        <TableHead>Relationship</TableHead>
+                        <TableHead>Type</TableHead>
                       </TableRow>
-                      {group.relationships.map(rel => (
-                        <TableRow key={`whitelist-rel-${rel.id}`}>
-                          <TableCell>
-                            <Checkbox
-                              checked={whitelist.includes(rel.id)}
-                              onCheckedChange={() =>
-                                toggleRelationshipInWhitelist(rel.id)
-                              }
-                            />
-                          </TableCell>
-                          <TableCell>
-                            {rel.startEntity?.name} → {rel.endEntity?.name}
-                          </TableCell>
-                          <TableCell>{rel.type?.name}</TableCell>
-                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {Object.values(relationshipsByType).map(group => (
+                        <React.Fragment
+                          key={`whitelist-group-${group.typeName}`}
+                        >
+                          <TableRow className="bg-gray-50">
+                            <TableCell colSpan={3} className="font-medium">
+                              {group.typeName}
+                            </TableCell>
+                          </TableRow>
+                          {group.relationships.map(rel => (
+                            <TableRow key={`whitelist-rel-${rel.id}`}>
+                              <TableCell>
+                                <Checkbox
+                                  checked={whitelist.includes(rel.id)}
+                                  onCheckedChange={() =>
+                                    toggleRelationshipInWhitelist(rel.id)
+                                  }
+                                />
+                              </TableCell>
+                              <TableCell>
+                                {rel.startEntity?.name} → {rel.endEntity?.name}
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline">
+                                  {rel.type?.name}
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </React.Fragment>
                       ))}
-                    </React.Fragment>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          ) : (
-            <div className="max-h-[300px] overflow-y-auto rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[50px]"></TableHead>
-                    <TableHead>Relationship</TableHead>
-                    <TableHead>Type</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {Object.values(relationshipsByType).map(group => (
-                    <React.Fragment key={`blacklist-group-${group.typeName}`}>
-                      <TableRow className="bg-gray-50">
-                        <TableCell colSpan={3} className="font-medium">
-                          {group.typeName}
-                        </TableCell>
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+              <div className="mt-2 text-sm text-gray-500">
+                Select relationships to explicitly include. If empty, all
+                relations are included (unless blacklisted).
+              </div>
+            </TabsContent>
+
+            <TabsContent value="blacklist">
+              {Object.keys(relationshipsByType).length === 0 ? (
+                <div className="py-4 text-center text-gray-500">
+                  No relationships available to blacklist.
+                </div>
+              ) : (
+                <div className="max-h-[400px] overflow-y-auto border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[50px]"></TableHead>
+                        <TableHead>Relationship</TableHead>
+                        <TableHead>Type</TableHead>
                       </TableRow>
-                      {group.relationships.map(rel => (
-                        <TableRow key={`blacklist-rel-${rel.id}`}>
-                          <TableCell>
-                            <Checkbox
-                              checked={blacklist.includes(rel.id)}
-                              onCheckedChange={() =>
-                                toggleRelationshipInBlacklist(rel.id)
-                              }
-                            />
-                          </TableCell>
-                          <TableCell>
-                            {rel.startEntity?.name} → {rel.endEntity?.name}
-                          </TableCell>
-                          <TableCell>{rel.type?.name}</TableCell>
-                        </TableRow>
+                    </TableHeader>
+
+                    <TableBody>
+                      {Object.values(relationshipsByType).map(group => (
+                        <React.Fragment
+                          key={`blacklist-group-${group.typeName}`}
+                        >
+                          <TableRow className="bg-gray-50">
+                            <TableCell colSpan={3} className="font-medium">
+                              {group.typeName}
+                            </TableCell>
+                          </TableRow>
+                          {group.relationships.map(rel => (
+                            <TableRow key={`blacklist-rel-${rel.id}`}>
+                              <TableCell>
+                                <Checkbox
+                                  checked={blacklist.includes(rel.id)}
+                                  onCheckedChange={() =>
+                                    toggleRelationshipInBlacklist(rel.id)
+                                  }
+                                />
+                              </TableCell>
+                              <TableCell>
+                                {rel.startEntity?.name} → {rel.endEntity?.name}
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline">
+                                  {rel.type?.name}
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </React.Fragment>
                       ))}
-                    </React.Fragment>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-          <div className="mt-2 text-sm text-gray-500">
-            {activeTab === 'whitelist'
-              ? 'Select relationships to explicitly include. If empty, all relations are included (unless blacklisted).'
-              : 'Select relationships to explicitly exclude from the graph.'}
-          </div>
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+              <div className="mt-2 text-sm text-gray-500">
+                Select relationships to explicitly exclude from the graph.
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </form>
 
       <DialogFooter>
         <DialogClose asChild>
-          <Button variant="ghost">Cancel</Button>
+          <Button disabled={isSubmitting} variant="ghost">
+            Cancel
+          </Button>
         </DialogClose>
-
-        <Button disabled={!name || !belongsTo} form={formId} type="submit">
-          Save
+        <Button
+          disabled={isSubmitting || !name || !belongsTo}
+          form={formId}
+          type="submit"
+        >
+          {isSubmitting ? 'Saving...' : 'Save'}
         </Button>
       </DialogFooter>
     </DialogContent>
   );
-};
-
-export default RelationshipModalContent;
+}

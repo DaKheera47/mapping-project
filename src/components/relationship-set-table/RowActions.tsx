@@ -44,25 +44,26 @@ export default function RowActions({
 
           <DropdownMenuContent align="end">
             <DialogTrigger asChild>
-              <DropdownMenuItem>Edit Relationship</DropdownMenuItem>
+              <DropdownMenuItem>Edit Relationship Set</DropdownMenuItem>
             </DialogTrigger>
 
             <AlertDialogTrigger asChild>
               <DropdownMenuItem variant="destructive">
-                Delete Relationship
+                Delete Relationship Set
               </DropdownMenuItem>
             </AlertDialogTrigger>
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* <AddEditModal
+        <AddEditModal
           mode="edit"
-          relationship={relationship}
+          relationshipSet={relationshipSet}
+          allRelationships={allRelationships}
+          allRelationshipSets={allRelationshipSets}
           allRelationshipTypes={allRelationshipTypes}
-          allEntities={allEntities}
-          allEntityTypes={allEntityTypes}
         />
-        <DeleteModalContent relationship={relationship} /> */}
+
+        <DeleteModalContent relationshipSet={relationshipSet} />
       </AlertDialog>
     </Dialog>
   );

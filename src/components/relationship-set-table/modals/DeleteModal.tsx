@@ -1,3 +1,4 @@
+import { actions } from 'astro:actions';
 import {
   AlertDialogAction,
   AlertDialogCancel,
@@ -7,52 +8,54 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import type { Relationship } from '@/db/schema';
-import { actions } from 'astro:actions';
+import { Button } from '@/components/ui/button';
+import type { RelationshipSet } from '@/db/schema';
+import { useAction } from '@/hooks/useAction';
+import { useState } from 'react';
+import { Loading } from '@/components/ui/loading';
 
-const DeleteModalContent = ({
-  relationship,
-}: {
-  relationship: Relationship;
-}) => {
+type Props = {
+  relationshipSet: RelationshipSet;
+};
+
+export default function DeleteModalContent({ relationshipSet }: Props) {
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const handleDelete = async () => {
     try {
-      const result = await actions.relationships.deleteRelationship({
-        id: relationship.id,
+      setIsDeleting(true);
+      await actions.relationshipSets.deleteRelationshipSet({
+        id: relationshipSet.id,
       });
-      if (result.error) {
-        throw new Error(result.error.message);
-      }
-    } catch (err) {
-      console.error(err);
+      // The modal will close automatically since we're using AlertDialogAction
+      // The parent page should refresh data after this
+    } catch (error) {
+      console.error('Failed to delete relationship set:', error);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   return (
-    <form id={`delete-modal-${relationship.id}`} onSubmit={handleDelete}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete this
-            relationship.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-
-          <AlertDialogAction
-            form={`delete-modal-${relationship.id}`}
-            variant="destructive"
-            type="submit"
-          >
-            Delete
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </form>
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+        <AlertDialogDescription>
+          This will permanently delete the relationship set "
+          {relationshipSet.name}" and remove it from the database. This action
+          cannot be undone.
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+        <AlertDialogAction
+          onClick={handleDelete}
+          disabled={isDeleting}
+          className="bg-red-600 hover:bg-red-700"
+        >
+          {isDeleting ? <Loading /> : 'Delete'}
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
   );
-};
-
-export default DeleteModalContent;
+}

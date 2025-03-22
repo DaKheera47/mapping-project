@@ -16,6 +16,7 @@ import {
   uuid,
   varchar,
   numeric,
+  jsonb,
 } from 'drizzle-orm/pg-core';
 
 export const createTable = pgTableCreator(name => `mapping_proj_${name}`);
@@ -79,23 +80,59 @@ export const entityTypeRelations = relations(EntityType, ({ many }) => ({
   entities: many(Entity),
 }));
 
+export const RelationshipSet = createTable('relationshipSet', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  belongsTo: text('belongs_to').notNull(), // For user or organization ID
+  description: text('description'),
+  // Using jsonb arrays to store relationship IDs
+  whitelist: jsonb('whitelist').$type<number[]>().default([]),
+  blacklist: jsonb('blacklist').$type<number[]>().default([]),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// Relationship Set Relations
+export const relationshipSetRelations = relations(
+  RelationshipSet,
+  ({ many }) => ({
+    // This creates a virtual relation to the relationship table
+    // It won't be enforced at the database level, but will be useful for querying
+    whitelistedRelationships: many(Relationship, {
+      relationName: 'whitelistedIn',
+    }),
+    blacklistedRelationships: many(Relationship, {
+      relationName: 'blacklistedIn',
+    }),
+  })
+);
+
 // Relationship Relations
-export const relationshipRelations = relations(Relationship, ({ one }) => ({
-  startEntity: one(Entity, {
-    fields: [Relationship.startEntityId],
-    references: [Entity.id],
-    relationName: 'startEntity',
-  }),
-  endEntity: one(Entity, {
-    fields: [Relationship.endEntityId],
-    references: [Entity.id],
-    relationName: 'endEntity',
-  }),
-  type: one(RelationshipType, {
-    fields: [Relationship.typeId],
-    references: [RelationshipType.id],
-  }),
-}));
+export const relationshipRelations = relations(
+  Relationship,
+  ({ one, many }) => ({
+    startEntity: one(Entity, {
+      fields: [Relationship.startEntityId],
+      references: [Entity.id],
+      relationName: 'startEntity',
+    }),
+    endEntity: one(Entity, {
+      fields: [Relationship.endEntityId],
+      references: [Entity.id],
+      relationName: 'endEntity',
+    }),
+    type: one(RelationshipType, {
+      fields: [Relationship.typeId],
+      references: [RelationshipType.id],
+    }),
+    whitelistedIn: many(RelationshipSet, {
+      relationName: 'whitelistedRelationships',
+    }),
+    blacklistedIn: many(RelationshipSet, {
+      relationName: 'blacklistedRelationships',
+    }),
+  })
+);
 
 // Relationship Type Relations
 export const relationshipTypeRelations = relations(
@@ -116,3 +153,4 @@ export type Relationship = InferSelectModel<typeof Relationship> & {
   endEntity: Entity;
   type: RelationshipType;
 };
+export type RelationshipSet = InferSelectModel<typeof RelationshipSet>;

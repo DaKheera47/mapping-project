@@ -5,6 +5,7 @@ import { entityTypes } from './entityTypeActions';
 import { relationships } from './relationshipActions';
 import { relationshipTypes } from './relationshipTypeActions';
 import { bulkImport } from './bulkRelationshipImportActions';
+import { relationshipSets } from './relationshipSetActions';
 
 export const server = {
   getServerTime: defineAction({
@@ -20,5 +21,6 @@ export const server = {
   bulkImport,
   entityTypes,
   relationships,
+  relationshipSets,
   relationshipTypes,
 };

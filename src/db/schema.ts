@@ -1,22 +1,12 @@
+import { relations, type InferSelectModel } from 'drizzle-orm';
 import {
-  relations,
-  type InferInsertModel,
-  type InferSelectModel,
-} from 'drizzle-orm';
-import {
-  boolean,
-  date,
   integer,
+  jsonb,
+  numeric,
   pgTableCreator,
-  primaryKey,
   serial,
   text,
-  time,
   timestamp,
-  uuid,
-  varchar,
-  numeric,
-  jsonb,
 } from 'drizzle-orm/pg-core';
 
 export const createTable = pgTableCreator(name => `mapping_proj_${name}`);
@@ -28,6 +18,8 @@ export const Entity = createTable('entity', {
   description: text('description'),
   location: text('location'),
   typeId: integer('type_id').references(() => EntityType.id),
+  latitude: numeric('latitude'),
+  longitude: numeric('longitude'),
 });
 
 // Entity Type Table
@@ -61,6 +53,17 @@ export const Relationship = createTable('relationship', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
+export const RelationshipSet = createTable('relationshipSet', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  belongsTo: text('belongs_to').notNull(), // For user or organization ID
+  description: text('description'),
+  whitelist: jsonb('whitelist').$type<number[]>().default([]),
+  blacklist: jsonb('blacklist').$type<number[]>().default([]),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
 // Entity Relations
 export const entityRelations = relations(Entity, ({ one, many }) => ({
   type: one(EntityType, {
@@ -80,24 +83,10 @@ export const entityTypeRelations = relations(EntityType, ({ many }) => ({
   entities: many(Entity),
 }));
 
-export const RelationshipSet = createTable('relationshipSet', {
-  id: serial('id').primaryKey(),
-  name: text('name').notNull(),
-  belongsTo: text('belongs_to').notNull(), // For user or organization ID
-  description: text('description'),
-  // Using jsonb arrays to store relationship IDs
-  whitelist: jsonb('whitelist').$type<number[]>().default([]),
-  blacklist: jsonb('blacklist').$type<number[]>().default([]),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-});
-
 // Relationship Set Relations
 export const relationshipSetRelations = relations(
   RelationshipSet,
   ({ many }) => ({
-    // This creates a virtual relation to the relationship table
-    // It won't be enforced at the database level, but will be useful for querying
     whitelistedRelationships: many(Relationship, {
       relationName: 'whitelistedIn',
     }),
@@ -142,7 +131,6 @@ export const relationshipTypeRelations = relations(
   })
 );
 
-// Export types
 export type RelationshipType = InferSelectModel<typeof RelationshipType>;
 export type EntityType = InferSelectModel<typeof EntityType>;
 export type Entity = InferSelectModel<typeof Entity> & {

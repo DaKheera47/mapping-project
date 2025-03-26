@@ -1,37 +1,36 @@
 // src/entrypoints/GeographicalGraphEntry.tsx
-import React from 'react';
-import GeographicalMap from '@/components/geographic-map/GeographicalMap'; // Adjust path if needed
-import { Loading } from '@/components/ui/loading'; // Use existing loading component
-
-// --- MOCK DATA ---
-// Replace with actual data fetching (e.g., using useAction) later
-const mockEntities = [
-  { id: 1, name: 'London Office', latitude: 51.5074, longitude: -0.1278 },
-  { id: 2, name: 'Manchester Hub', latitude: 53.4808, longitude: -2.2426 },
-  { id: 3, name: 'Bristol Site', latitude: 51.4545, longitude: -2.5879 },
-  { id: 4, name: 'Edinburgh HQ', latitude: 55.9533, longitude: -3.1883 },
-  { id: 5, name: 'Birmingham Branch', latitude: 52.4862, longitude: -1.8904 },
-  { id: 6, name: 'No Coords Entity', latitude: null, longitude: null }, // Entity without coords
-  { id: 7, name: 'Cardiff Point', latitude: 51.4816, longitude: -3.1791 },
-];
-
-const mockRelationships = [
-  { id: 101, startEntityId: 1, endEntityId: 2 }, // London -> Manchester
-  { id: 102, startEntityId: 1, endEntityId: 3 }, // London -> Bristol
-  { id: 103, startEntityId: 2, endEntityId: 4 }, // Manchester -> Edinburgh
-  { id: 104, startEntityId: 5, endEntityId: 1 }, // Birmingham -> London
-  { id: 105, startEntityId: 3, endEntityId: 7 }, // Bristol -> Cardiff
-  { id: 106, startEntityId: 1, endEntityId: 6 }, // Relationship to entity without coords (won't render line)
-  { id: 107, startEntityId: 6, endEntityId: 2 }, // Relationship from entity without coords (won't render line)
-];
-// --- END MOCK DATA ---
+import React, { useState } from 'react'; // Added useState for refresh flag
+import GeographicalMap from '@/components/geographic-map/GeographicalMap';
+import { Loading } from '@/components/ui/loading';
+import { Button } from '@/components/ui/button'; // For refresh button
+import { useAction } from '@/hooks/useAction'; // Import the hook
+import { actions } from 'astro:actions'; // Import the actions
+import { RefreshCcw } from 'lucide-react'; // For refresh icon
 
 export default function GeographicalGraphEntry() {
-  // In the future, replace mock data with fetched data using useAction
-  const entities = mockEntities;
-  const relationships = mockRelationships;
-  const loading = false; // Set to true when fetching real data
-  const error = null; // Set error state when fetching real data
+  const [flag, setFlag] = useState(false); // State for triggering refresh
+
+  // Fetch entities - ensure getAllEntities includes coordinates and type relation
+  const {
+    data: entityData,
+    error: entitiesError,
+    loading: entitiesLoading,
+  } = useAction(actions.entities.getAllEntities, {}, flag);
+
+  // Fetch relationships - ensure getAllRelationships includes startEntity, endEntity, and type relations
+  const {
+    data: relationshipData,
+    error: relationshipsError,
+    loading: relationshipsLoading,
+  } = useAction(actions.relationships.getAllRelationships, {}, flag);
+
+  // Combine loading and error states
+  const loading = entitiesLoading || relationshipsLoading;
+  const error = entitiesError || relationshipsError;
+
+  // Extract the actual arrays once data is loaded
+  const entities = entityData?.entities ?? [];
+  const relationships = relationshipData?.relationships ?? [];
 
   if (loading) {
     return (
@@ -41,19 +40,55 @@ export default function GeographicalGraphEntry() {
     );
   }
 
+  // Display a combined error message if any fetch fails
   if (error) {
     return (
-      <div className="flex h-full w-full items-center justify-center text-red-500">
-        Error loading data: {/* {error.message} */}
+      <div className="flex h-full w-full flex-col items-center justify-center p-4 text-center text-red-500">
+        <p className="font-semibold">Error loading map data:</p>
+        <p>{error.message}</p>
+        <Button
+          variant="outline"
+          size="sm"
+          className="mt-4"
+          onClick={() => setFlag(!flag)}
+        >
+          <RefreshCcw className="mr-2 h-4 w-4" />
+          Retry
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="h-full w-full py-6">
-      {/* Added padding */}
-      {/* Container to give the map dimensions */}
-      <div className="h-full w-full overflow-hidden rounded-lg border shadow-lg">
+    // Use flex-col to position header and map vertically
+    <div className="flex h-full w-full flex-col py-6">
+      <div className="mb-4 flex items-center justify-between px-1">
+        {' '}
+        {/* Add header area */}
+        <div>
+          <h1 className="text-2xl font-bold">Geographical Map</h1>
+          <p className="text-muted-foreground text-sm">
+            Displaying{' '}
+            {
+              entities.filter(e => e.latitude != null && e.longitude != null)
+                .length
+            }{' '}
+            entities with locations.
+          </p>
+        </div>
+        {/* Refresh Button */}
+        <Button
+          variant="outline"
+          onClick={() => setFlag(!flag)}
+          aria-label="Refresh map data"
+        >
+          <RefreshCcw className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* Container for the map, taking remaining space */}
+      <div className="flex-grow overflow-hidden rounded-lg border shadow-lg">
+        {/* @ts-expect-error this is minor type issues, nbd */}
         <GeographicalMap entities={entities} relationships={relationships} />
       </div>
     </div>

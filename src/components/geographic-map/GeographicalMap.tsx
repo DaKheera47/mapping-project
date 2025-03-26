@@ -1,32 +1,30 @@
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import React, { useMemo } from 'react';
 import {
   MapContainer,
-  TileLayer,
   Marker,
   Polyline,
   Popup,
+  TileLayer,
 } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
 
-interface MockEntity {
-  id: number;
-  name: string;
-  latitude?: number | null;
-  longitude?: number | null;
-  type?: { name: string; dot?: string | null };
-}
-
-interface MockRelationship {
-  id: number;
-  startEntityId: number;
-  endEntityId: number;
-  type?: { name: string; dot?: string | null };
-}
+import type { Entity, Relationship, RelationshipType } from '@/db/schema';
 
 interface GeographicalMapProps {
-  entities: MockEntity[];
-  relationships: MockRelationship[];
+  entities: Entity[];
+  relationships: Relationship[];
+}
+
+type EntityWithCoords = Entity & { latitude: number; longitude: number };
+
+function hasCoords(
+  entity: Entity | undefined | null
+): entity is EntityWithCoords {
+  if (!entity) return false;
+  const lat = entity.latitude != null ? parseFloat(entity.latitude) : NaN;
+  const lon = entity.longitude != null ? parseFloat(entity.longitude) : NaN;
+  return !isNaN(lat) && !isNaN(lon);
 }
 
 const GeographicalMap: React.FC<GeographicalMapProps> = ({
@@ -34,42 +32,42 @@ const GeographicalMap: React.FC<GeographicalMapProps> = ({
   relationships = [],
 }) => {
   const entitiesWithCoords = useMemo(() => {
-    return entities.filter(
-      e => e.latitude != null && e.longitude != null
-    ) as (MockEntity & { latitude: number; longitude: number })[];
+    return entities.reduce((acc, e) => {
+      const lat = e.latitude != null ? parseFloat(e.latitude) : NaN;
+      const lon = e.longitude != null ? parseFloat(e.longitude) : NaN;
+      if (!isNaN(lat) && !isNaN(lon)) {
+        // @ts-expect-error this is a workaround for the type error
+        acc.push({ ...e, latitude: lat, longitude: lon });
+      }
+      return acc;
+    }, [] as EntityWithCoords[]);
   }, [entities]);
 
-  const entityMap = useMemo(() => {
-    const map = new Map<
-      number,
-      MockEntity & { latitude: number; longitude: number }
-    >();
-    entitiesWithCoords.forEach(e => map.set(e.id, e));
-    return map;
-  }, [entitiesWithCoords]);
-
   const polylines = useMemo(() => {
-    return relationships
-      .map(rel => {
-        const startEntity = entityMap.get(rel.startEntityId);
-        const endEntity = entityMap.get(rel.endEntityId);
+    return relationships.reduce(
+      (acc, rel) => {
+        const startEntity = rel.startEntity;
+        const endEntity = rel.endEntity;
 
-        if (startEntity && endEntity) {
-          return {
+        if (hasCoords(startEntity) && hasCoords(endEntity)) {
+          acc.push({
             id: rel.id,
             positions: [
               [startEntity.latitude, startEntity.longitude] as L.LatLngTuple,
               [endEntity.latitude, endEntity.longitude] as L.LatLngTuple,
             ],
-          };
+            type: rel.type,
+          });
         }
-        return null;
-      })
-      .filter(line => line !== null) as {
-      id: number;
-      positions: L.LatLngTuple[];
-    }[];
-  }, [relationships, entityMap]);
+        return acc;
+      },
+      [] as {
+        id: number;
+        positions: L.LatLngTuple[];
+        type: RelationshipType | null;
+      }[]
+    );
+  }, [relationships]);
 
   if (entitiesWithCoords.length === 0) {
     return (
@@ -79,7 +77,6 @@ const GeographicalMap: React.FC<GeographicalMapProps> = ({
     );
   }
 
-  // UK approx center
   const defaultCenter: L.LatLngTuple = [54.5, -3];
   const defaultZoom = 6;
 
@@ -95,22 +92,24 @@ const GeographicalMap: React.FC<GeographicalMapProps> = ({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      {/* Render Markers */}
       {entitiesWithCoords.map(entity => (
         <Marker key={entity.id} position={[entity.latitude, entity.longitude]}>
           <Popup>
             <b>{entity.name}</b>
+            Type: {entity.type?.name || 'N/A'}
+            Location: {entity.location?.toUpperCase() || 'N/A'}
           </Popup>
         </Marker>
       ))}
 
-      {/* Render Polylines */}
       {polylines.map(line => (
         <Polyline
           key={line.id}
           positions={line.positions}
           pathOptions={{ color: 'blue', weight: 2 }}
-        ></Polyline>
+        >
+          <Popup>Relationship type: {line.type?.name}</Popup>
+        </Polyline>
       ))}
     </MapContainer>
   );

@@ -1,0 +1,25 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { checkSession } from '@/lib/checkSession';
+import GeographicalGraphEntry from '@/entrypoints/GeographicalGraphEntry';
+import { Loading } from '@/components/ui/loading';
+
+const { user, redirect } = await checkSession(Astro.cookies);
+if (redirect) {
+  return Astro.redirect(redirect);
+}
+---
+
+<Layout
+  title='Geographical Graph'
+  isAuth={!!user}
+>
+  <GeographicalGraphEntry client:only>
+    <div
+      slot='fallback'
+      class='flex h-full w-full items-center justify-center'
+    >
+      <Loading />
+    </div>
+  </GeographicalGraphEntry>
+</Layout>

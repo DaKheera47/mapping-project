@@ -17,10 +17,11 @@ export const relationshipTypes = {
       name: z.string(),
       description: z.string(),
       dot: z.string().optional(),
+      weight: z.string().optional(),
     }),
-    handler: async ({ name, description, dot }) => {
+    handler: async ({ name, description, dot, weight }) => {
       try {
-        await db.insert(RelationshipType).values({ name, description, dot });
+        await db.insert(RelationshipType).values({ name, description, dot, weight: weight ?? '1.0' });
         return { success: true };
       } catch (error: any) {
         return { success: false, error: error.message };
@@ -33,12 +34,13 @@ export const relationshipTypes = {
       name: z.string(),
       description: z.string(),
       dot: z.string().optional(),
+      weight: z.string().optional(),
     }),
-    handler: async ({ id, name, description, dot }) => {
+    handler: async ({ id, name, description, dot, weight }) => {
       try {
         await db
           .update(RelationshipType)
-          .set({ name, description, dot })
+          .set({ name, description, dot, weight: weight ?? '1.0' })
           .where(eq(RelationshipType.id, id));
 
         return { success: true };

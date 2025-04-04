@@ -1,3 +1,4 @@
+// src/components/relationship-type-table/modals/AddEditModal.tsx
 import { Button } from '@/components/ui/button';
 import {
   DialogClose,
@@ -12,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import type { RelationshipType } from '@/db/schema';
 import { actions } from 'astro:actions';
 import { useState } from 'react';
-import DotEditor from './DotEditor';
+import DotEditor from './DotEditor'; // Assuming this exists and works for edge styling
 
 type RelationshipTypeModalContentProps = {
   mode: 'add' | 'edit';
@@ -33,10 +34,18 @@ const RelationshipTypeModalContent = ({
   const [dot, setDot] = useState(
     mode === 'edit' ? (relationshipType?.dot ?? '') : ''
   );
+  // Add state for weight, parsing the string from DB to number
+  const [weight, setWeight] = useState<number>(
+    mode === 'edit'
+      ? parseFloat(relationshipType?.weight ?? '1.0') // Parse string to number
+      : 1.0
+  );
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     setError(null);
+    setIsSubmitting(true);
 
     try {
       let result;
@@ -45,7 +54,8 @@ const RelationshipTypeModalContent = ({
         result = await actions.relationshipTypes.addRelationshipType({
           name,
           description,
-          dot, // Include the dot styling
+          dot,
+          weight: weight.toString(),
         });
       } else {
         // Edit mode
@@ -57,16 +67,22 @@ const RelationshipTypeModalContent = ({
           id: relationshipType.id,
           name,
           description,
-          dot, // Include the dot styling
+          dot,
+          weight: weight.toString(),
         });
       }
 
       if (result.error) {
         throw new Error(result.error.message);
       }
+      // Close dialog or refresh data - assuming DialogClose handles this or parent needs refresh
+      // For simplicity, let's reload the page on success
+      window.location.reload();
     } catch (err) {
       console.error(err);
       setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -106,10 +122,11 @@ const RelationshipTypeModalContent = ({
         </div>
       )}
 
+      {/* Use onSubmit directly on the form */}
       <form id={formId} className="grid gap-6 py-4" onSubmit={handleSubmit}>
         <div className="grid grid-cols-4 items-center gap-4">
           <Label htmlFor="name" className="text-right">
-            Name
+            Name*
           </Label>
           <Input
             id="name"
@@ -132,21 +149,45 @@ const RelationshipTypeModalContent = ({
           />
         </div>
 
+        {/* Add Input for Weight */}
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="weight" className="text-right">
+            Weight
+          </Label>
+          <Input
+            id="weight"
+            type="number" // Use number type input
+            value={weight}
+            onChange={e => setWeight(parseFloat(e.target.value) || 0)} // Parse input to float
+            className="col-span-3"
+            step="0.1" // Allow decimal steps
+            min="0" // Minimum weight
+          />
+        </div>
+
         <div className="grid grid-cols-1 gap-4">
-          <Label htmlFor="dot-editor">Appearance</Label>
-          <div className="rounded-md border p-4">
+          <Label htmlFor="dot-editor">Appearance (Styling)</Label>
+          <div className="rounded-md border bg-slate-50 p-4">
+            {/* Assuming DotEditor handles edge styling */}
             <DotEditor initialDot={dot} onSave={newDot => setDot(newDot)} />
           </div>
+          <p className="text-muted-foreground mt-1 text-xs">
+            Define visual styles like color and line type. The 'Weight' field
+            above influences layout strength.
+          </p>
         </div>
       </form>
 
       <DialogFooter>
         <DialogClose asChild>
-          <Button variant="ghost">Cancel</Button>
+          <Button variant="ghost" disabled={isSubmitting}>
+            Cancel
+          </Button>
         </DialogClose>
 
-        <Button disabled={!name} form={formId} type="submit">
-          Save
+        {/* Button triggers form submission via form ID */}
+        <Button disabled={!name || isSubmitting} form={formId} type="submit">
+          {isSubmitting ? 'Saving...' : 'Save'}
         </Button>
       </DialogFooter>
     </DialogContent>

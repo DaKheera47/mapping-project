@@ -13,6 +13,10 @@ export const getColumns = (): ColumnDef<RelationshipType>[] => {
       header: 'Description',
     },
     {
+      accessorKey: 'weight',
+      header: 'Weight',
+    },
+    {
       id: 'actions',
       cell: ({ row }) => <RowActions relationshipType={row.original} />,
     },

@@ -15,7 +15,7 @@ if (redirect) {
   title='View Entities'
   isAuth={!!user}
 >
-  <EntitiesEntry client:load>
+  <EntitiesEntry client:only>
     <div
       slot='fallback'
       class='flex w-full items-center justify-center'

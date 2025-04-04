@@ -15,7 +15,7 @@ if (redirect) {
   title='View Relationship Sets'
   isAuth={!!user}
 >
-  <RelationshipSetsEntry client:load>
+  <RelationshipSetsEntry client:only>
     <div
       slot='fallback'
       class='flex w-full items-center justify-center'

@@ -51,7 +51,7 @@ const { isAuth } = Astro.props;
           {appDisplayName}
         </a>
 
-        <ThemeDropdown client:load />
+        <ThemeDropdown client:only />
 
         <div class='flex lg:hidden'>
           <MenuIcon class='size-4 text-neutral-800' />

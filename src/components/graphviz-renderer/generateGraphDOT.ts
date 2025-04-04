@@ -1,31 +1,44 @@
+// src/components/graphviz-renderer/generateGraphDOT.ts
 import type {
   Entity,
   EntityType,
   Relationship,
-  RelationshipType,
+  RelationshipType, // Ensure RelationshipType includes 'weight: string'
 } from '@/db/schema';
 
+// --- Type Definitions ---
+
+// Enhanced types add resolved related data
 type EnhancedEntity = Entity & { type: EntityType };
+
+// EnhancedRelationship includes the full RelationshipType which has weight as string
 type EnhancedRelationship = Relationship & {
-  type: RelationshipType | null;
+  type: RelationshipType | null; // Relationship type might be null
   startEntity: Entity;
   endEntity: Entity;
 };
 
+// Map for quick entity lookup by ID
 interface EntityMap {
   [key: number]: EnhancedEntity;
 }
 
-interface InternalRelationshipsMap {
-  [key: number]: EnhancedRelationship[];
-}
-
+// Map for entity type ID to its DOT styling string
 interface EntityTypeStyleMap {
   [typeId: number]: string;
 }
 
+// Map for relationship type ID to its DOT styling string (from the 'dot' field)
+interface RelationshipTypeStyleMap {
+  [typeId: number]: string;
+}
+
+// --- Styling Map Creation Functions ---
+
 /**
- * Creates a mapping of entity type IDs to styling strings
+ * Creates a mapping of entity type IDs to DOT styling strings.
+ * Prioritizes styling defined in the database (`type.dot`).
+ * Falls back to default styles based on type name if `type.dot` is missing.
  */
 const createEntityTypeStyleMap = (
   entityTypes: EntityType[]
@@ -33,38 +46,45 @@ const createEntityTypeStyleMap = (
   const styleMap: EntityTypeStyleMap = {};
 
   entityTypes.forEach(type => {
-    if (type.id) {
+    // Ensure type and type.id exist
+    if (type?.id) {
       if (type.dot) {
-        // Use dot styling from database
+        // Use specific styling from the database if available
         styleMap[type.id] = type.dot;
       } else {
-        // Default styling based on entity type name for backward compatibility
+        // Fallback to default styling based on entity type name
         const typeName = type.name || '';
-        let defaultStyle = 'shape=box, color="#d1d5db", style=filled';
+        let defaultStyle = 'shape=box, color="#d1d5db", style=filled'; // Default grey box
 
-        // Create appropriate default styling based on entity type name
-        if (typeName === 'Person') {
-          defaultStyle =
-            'shape=circle, color="yellow", style=filled, fontsize=12';
-        } else if (typeName === 'Company') {
-          defaultStyle = 'shape=box, color="lightblue", style=filled';
-        } else if (
-          typeName === 'Government Organisation' ||
-          typeName === 'Government Organization'
-        ) {
-          defaultStyle = 'shape=box, color="lightgreen", style=filled';
-        } else if (typeName === 'University') {
-          defaultStyle = 'shape=box, color="orange", style=filled';
-        } else if (typeName === 'Partnership') {
-          defaultStyle = 'shape=ellipse, color="red", style=filled';
-        } else if (typeName === 'Collective') {
-          defaultStyle = 'shape=ellipse, color="cyan", style=filled';
-        } else if (typeName === 'Association') {
-          defaultStyle = 'shape=ellipse, color="lightgrey", style=filled';
-        } else if (typeName === 'Division') {
-          defaultStyle = 'shape=ellipse, color="lightgrey", style=line';
+        // Assign specific default styles based on common entity type names
+        switch (typeName) {
+          case 'Person':
+            defaultStyle = 'shape=circle, color="yellow", style=filled, fontsize=12';
+            break;
+          case 'Company':
+            defaultStyle = 'shape=box, color="lightblue", style=filled';
+            break;
+          case 'Government Organisation': // Spelling variations
+          case 'Government Organization':
+            defaultStyle = 'shape=box, color="lightgreen", style=filled';
+            break;
+          case 'University':
+            defaultStyle = 'shape=box, color="orange", style=filled';
+            break;
+          case 'Partnership':
+            defaultStyle = 'shape=ellipse, color="red", style=filled';
+            break;
+          case 'Collective':
+            defaultStyle = 'shape=ellipse, color="cyan", style=filled';
+            break;
+          case 'Association':
+            defaultStyle = 'shape=ellipse, color="lightgrey", style=filled';
+            break;
+          case 'Division':
+            defaultStyle = 'shape=ellipse, color="#e5e7eb", style=filled'; // Lighter grey ellipse
+            break;
+          // Add more default cases as needed
         }
-
         styleMap[type.id] = defaultStyle;
       }
     }
@@ -74,22 +94,24 @@ const createEntityTypeStyleMap = (
 };
 
 /**
- * Creates a mapping of relationship type IDs to styling strings
+ * Creates a mapping of relationship type IDs to only the DOT *styling* strings
+ * defined in the database (`type.dot`). Falls back to a default style if missing.
+ * This map does NOT include the weight.
  */
 const createRelationshipTypeStyleMap = (
   relationshipTypes: RelationshipType[]
-): { [key: number]: string } => {
-  const styleMap: { [key: number]: string } = {};
+): RelationshipTypeStyleMap => {
+  const styleMap: RelationshipTypeStyleMap = {};
 
   relationshipTypes.forEach(type => {
-    if (type.id) {
+    // Ensure type and type.id exist
+    if (type?.id) {
       if (type.dot) {
-        // Use dot styling from database
+        // Use specific styling from the database if available
         styleMap[type.id] = type.dot;
       } else {
-        // Default styling if .dot is not provided
-        let defaultStyle = 'color="black"';
-        styleMap[type.id] = defaultStyle;
+        // Fallback to a simple default style for the 'dot' part
+        styleMap[type.id] = 'color="black"'; // Default black line
       }
     }
   });
@@ -97,164 +119,139 @@ const createRelationshipTypeStyleMap = (
   return styleMap;
 };
 
+
+// --- Graph Layout Options ---
+
 /**
- * Processes graph elements to create graph layout options
+ * Generates DOT graph layout option strings based on graph size.
+ * Adjusts parameters like node separation and spring constant for better layout.
  */
 const createGraphLayoutOptions = (
   entities: EnhancedEntity[],
   relationships: EnhancedRelationship[]
 ): string => {
-  // Determine if this is a large graph that needs special handling
+  // Heuristic to determine if the graph is "large"
   const isLargeGraph = entities.length > 50 || relationships.length > 100;
 
-  // Build layout options string
+  // Build layout options string line by line for clarity
   let options = '';
+  options += '\t// Graph layout options\n';
+  options += '\tsplines=true; // Use curved edges\n';
+  options += '\toverlap=false; // Try to prevent node overlap\n';
+  options += '\tnodesep=0.6; // Minimum space between nodes\n';
+  options += '\tbgcolor="transparent"; // Transparent background\n';
+  options += '\tpad=0.5; // Padding around the graph\n';
 
-  // Add general graph settings
-  options += '\tsplines=true;\n';
-  options += '\toverlap=false;\n';
-  options += '\tnodesep=0.6;\n';
-
-  // Add size-specific settings
+  // Add size-specific layout adjustments
   if (isLargeGraph) {
-    options += '\tranksep=2.0;\n';
-    options += '\tK=1.0;\n'; // Increase spring constant for force-directed layouts
+    options += '\t// Settings for large graphs\n';
+    options += '\tranksep=2.0; // Increase vertical separation between ranks\n';
+    // K is relevant for force-directed layouts (like fdp, sfdp)
+    options += '\tK=1.0; // Adjust spring constant (higher = more spread out)\n';
   } else {
-    options += '\tranksep=0.8;\n';
+    options += '\t// Settings for smaller graphs\n';
+    options += '\tranksep=0.8; // Default vertical separation\n';
   }
-
-  // Add aesthetic settings
-  options += '\tbgcolor="transparent";\n';
-  options += '\tpad=0.5;\n';
 
   return options;
 };
 
+
+// --- Main DOT Generation Function ---
+
 /**
- * Generates DOT language code for the entity relationship graph
+ * Generates DOT language code for the entity relationship graph.
+ * Includes edge weights parsed from the RelationshipType.weight (string) field.
  */
 const generateGraphDOT = (
   entities: EnhancedEntity[],
   entityTypes: EntityType[],
   relationships: EnhancedRelationship[],
-  relationshipTypes: RelationshipType[]
+  relationshipTypes: RelationshipType[] // Pass full relationshipTypes to access weight
 ): string => {
-  // Create a map for quick entity lookup
-  const entityMap: EntityMap = {};
-  entities.forEach(entity => {
-    entityMap[entity.id] = entity;
-  });
-
-  // Create style maps for both entities and relationships
+  // Create style maps for efficient lookup during node/edge generation
   const entityTypeStyleMap = createEntityTypeStyleMap(entityTypes);
-  const relationshipStyleMap =
-    createRelationshipTypeStyleMap(relationshipTypes);
+  // This map only contains the 'dot' styling string part
+  const relationshipTypeDotStyleMap = createRelationshipTypeStyleMap(relationshipTypes);
 
-  // Group relationships by parent entity (for subgraphs)
-  const internalRelationships: InternalRelationshipsMap = {};
-  const externalRelationships: EnhancedRelationship[] = [];
-
-  // Separate division/employee relationships (internal) from others
-  relationships.forEach(rel => {
-    if (
-      rel.type?.name?.includes('Employee') ||
-      rel.type?.name?.includes('Division')
-    ) {
-      if (!internalRelationships[rel.startEntityId]) {
-        internalRelationships[rel.startEntityId] = [];
-      }
-      internalRelationships[rel.startEntityId].push(rel);
-    } else {
-      externalRelationships.push(rel);
-    }
-  });
-
-  // Start building the DOT graph
+  // Start building the DOT graph string
   let dot = 'graph ecosystem {\n';
 
-  // Add graph layout options
+  // Add graph-level layout options
   dot += createGraphLayoutOptions(entities, relationships);
 
   // Define default node styling
-  dot +=
-    '\tnode [shape=box, style=filled, color="#f3f4f6", fontname="Arial"];\n';
+  dot += '\t// Default node style\n';
+  dot += '\tnode [shape=box, style=filled, color="#f3f4f6", fontname="Arial"];\n';
 
-  // Define default edge styling
-  dot += '\tedge [fontname="Arial", fontsize=10];\n';
+  // Define default edge styling - includes default weight
+  dot += '\t// Default edge style\n';
+  dot += '\tedge [fontname="Arial", fontsize=10, color="#6b7280", weight=1.0];\n';
 
-  // Add subgraphs for entities with internal relationships
-  Object.keys(internalRelationships).forEach(hostIdStr => {
-    const hostId = Number(hostIdStr);
-    const host = entityMap[hostId];
-    if (!host) return;
-
-    dot += `\tsubgraph cluster${host.id} {\n`;
-    dot += `\t\tnode [style=filled, color=white];\n`;
-    dot += `\t\tstyle=filled;\n`;
-    dot += `\t\tcolor=lightgrey;\n`;
-    dot += `\t\tlabel="${host.name || ''}";\n`;
-    dot += `\t\tlabeljust=l;\n`; // Left-justify the cluster label
-    dot += `\t\tlabelloc=t;\n`; // Place label at top
-
-    // Add all entities that belong to this cluster
-    internalRelationships[hostId].forEach(rel => {
-      const endEntity = entityMap[rel.endEntityId];
-      if (!endEntity) return;
-
-      // Apply specific styling for entities within clusters
-      const styling =
-        endEntity.type?.id && entityTypeStyleMap[endEntity.type.id]
-          ? entityTypeStyleMap[endEntity.type.id]
-          : 'shape=box';
-
-      dot += `\t\t${rel.endEntityId} [${styling}, label="${endEntity.name || ''}"];\n`;
-    });
-
-    // Add internal relationship connections
-    internalRelationships[hostId].forEach(rel => {
-      const styling =
-        rel.type?.id && relationshipStyleMap[rel.type.id]
-          ? `[${relationshipStyleMap[rel.type.id]}]`
-          : '';
-
-      dot += `\t\t${rel.startEntityId} -- ${rel.endEntityId} ${styling};\n`;
-    });
-
-    dot += '\t};\n';
-  });
-
-  // Add external relationships with styling from relationship type
-  externalRelationships.forEach(rel => {
-    const styling =
-      rel.type?.id && relationshipStyleMap[rel.type.id]
-        ? `[${relationshipStyleMap[rel.type.id]}]`
-        : '';
-
-    dot += `\t${rel.startEntityId} -- ${rel.endEntityId} ${styling};\n`;
-  });
-
-  // Style nodes based on entity type
+  dot += '\n\t// Node Definitions\n';
+  // Add all entity nodes with their specific styling
   entities.forEach(entity => {
-    // Skip entities that are part of subgraphs with internal relationships
-    // (they're already styled within their clusters)
-    if (internalRelationships[entity.id]) return;
+    // Get the styling string from the map based on the entity's type ID
+    const styling = entity.type?.id && entityTypeStyleMap[entity.type.id]
+      ? entityTypeStyleMap[entity.type.id]
+      : ''; // Rely on graph default node style
 
-    // Check if this entity is only an end entity in internal relationships
-    const isOnlyInternalEndEntity = Object.values(internalRelationships).some(
-      rels => rels.some((rel: Relationship) => rel.endEntityId === entity.id)
-    );
+    // Escape double quotes within the label if necessary
+    const label = (entity.name || `Entity ${entity.id}`).replace(/"/g, '\\"');
 
-    if (isOnlyInternalEndEntity) return;
-
-    // Get entity type styling
-    const styling =
-      entity.type?.id && entityTypeStyleMap[entity.type.id]
-        ? entityTypeStyleMap[entity.type.id]
-        : 'shape=box';
-
-    dot += `\t${entity.id} [${styling}, label="${entity.name || ''}"];\n`;
+    // Add the node definition line
+    dot += `\t${entity.id} [${styling}, label="${label}"];\n`;
   });
 
+  dot += '\n\t// Edge Definitions\n';
+  // Add all relationship edges with their specific styling and weight
+  relationships.forEach(rel => {
+    if (rel.startEntityId == null || rel.endEntityId == null) {
+      console.warn(`Skipping relationship with missing start/end ID: ${JSON.stringify(rel)}`);
+      return; // Skip this relationship if IDs are missing
+    }
+
+    // --- Build Edge Attributes ---
+    const attributes: string[] = [];
+
+    // 1. Get visual styling from the 'dot' field via the map
+    const dotStyling = rel.type?.id && relationshipTypeDotStyleMap[rel.type.id]
+      ? relationshipTypeDotStyleMap[rel.type.id]
+      : ''; // Empty string if no specific dot style
+
+    // Add dotStyling to attributes *if* it's not empty
+    if (dotStyling) {
+      attributes.push(dotStyling);
+    }
+
+    // 2. Get and parse weight from the relationship type object
+    let weightValue = 1.0; // Default weight
+    // Check if rel.type exists and weight string is present and not empty
+    if (rel.type?.weight) {
+      const parsedWeight = parseFloat(rel.type.weight);
+      // Use parsed weight if it's a valid positive number, otherwise keep default
+      if (!isNaN(parsedWeight) && parsedWeight >= 0) {
+        weightValue = parsedWeight;
+      } else {
+        // Log a warning if parsing failed or value is invalid
+        console.warn(`Invalid or non-positive weight string "${rel.type.weight}" for relationship type ID ${rel.type.id}. Using default weight 1.0.`);
+      }
+    } else if (rel.type && !rel.type.weight) {
+       // Log if weight is missing or empty, using default
+       // console.log(`Weight missing or empty for relationship type ID ${rel.type.id}. Using default weight 1.0.`);
+    }
+    // Always add the weight attribute (either parsed or default)
+    attributes.push(`weight=${weightValue}`);
+
+    // --- Combine attributes into the final string for the edge ---
+    const finalAttributeString = attributes.length > 0 ? `[${attributes.join(', ')}]` : '';
+
+    // --- Add the edge definition line to the DOT string ---
+    // Use "--" for undirected graphs. Use "->" for directed.
+    dot += `\t${rel.startEntityId} -- ${rel.endEntityId} ${finalAttributeString};\n`;
+  });
+
+  // Close the graph definition
   dot += '}';
   return dot;
 };

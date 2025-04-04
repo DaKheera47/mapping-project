@@ -55,7 +55,7 @@ const GraphVizRenderer = ({
 
         // Render the graph using Graphviz
         const graphviz = await Graphviz.load();
-        const svgOutput = graphviz.dot(dotRef.current);
+        const svgOutput = graphviz.neato(dotRef.current);
 
         // Process SVG to ensure it fills container but maintain original viewBox
         const processedSvg = svgOutput.replace(
